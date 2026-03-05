@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>n8n Chat – Custom UI</title>
+
+    <!-- 1) n8n Chat Standard Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" />
+
+    <!-- 2) Dein Custom Design (Override) -->
+    <style>
+      :root{
+        --bg: #0b1220;
+        --card: rgba(255,255,255,.06);
+        --card-border: rgba(255,255,255,.12);
+        --text: rgba(255,255,255,.92);
+        --muted: rgba(255,255,255,.65);
+        --brand: #7c3aed;
+        --brand2: #4f46e5;
+        --bubble-bot: rgba(255,255,255,.08);
+        --bubble-user: linear-gradient(135deg, var(--brand), var(--brand2));
+        --shadow: 0 20px 60px rgba(0,0,0,.55);
+        --radius: 18px;
+      }
+
+      body{
+        margin:0;
+        min-height:100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background:
+          radial-gradient(900px 450px at 20% 10%, rgba(124,58,237,.35), transparent 55%),
+          radial-gradient(700px 380px at 85% 15%, rgba(79,70,229,.30), transparent 60%),
+          radial-gradient(900px 500px at 45% 95%, rgba(16,185,129,.12), transparent 55%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      /* Optional: kleine Seite drumrum, der Chat "floatet" dann darüber */
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 48px 20px 120px;
+      }
+      .hero {
+        display:flex;
+        gap: 18px;
+        align-items:flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      .hero h1{
+        margin:0;
+        font-size: clamp(28px, 3vw, 42px);
+        letter-spacing: -0.02em;
+      }
+      .hero p{
+        margin: 10px 0 0;
+        color: var(--muted);
+        max-width: 68ch;
+        line-height: 1.5;
+      }
+      .pill{
+        display:inline-flex;
+        align-items:center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 999px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.25);
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .dot{
+        width:10px;height:10px;border-radius:999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34,197,94,.15);
+      }
+
+      /* =========================================
+         n8n Chat CSS Overrides
+         (Klassen können je nach Version leicht abweichen.
+         Diese Overrides sind "safe" gehalten)
+         ========================================= */
+
+      /* Chat Container / Window */
+      .n8n-chat-window,
+      .n8n-chat__window,
+      [class*="n8n-chat"][class*="window"]{
+        border-radius: var(--radius) !important;
+        overflow: hidden !important;
+        box-shadow: var(--shadow) !important;
+        border: 1px solid var(--card-border) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+      }
+
+      /* Header */
+      .n8n-chat-header,
+      .n8n-chat__header,
+      [class*="n8n-chat"][class*="header"]{
+        background: linear-gradient(135deg, rgba(124,58,237,.30), rgba(79,70,229,.22)) !important;
+        border-bottom: 1px solid rgba(255,255,255,.10) !important;
+        color: var(--text) !important;
+      }
+
+      /* Header Text */
+      .n8n-chat-header * ,
+      .n8n-chat__header *{
+        color: var(--text) !important;
+      }
+
+      /* Chat Body / Messages area */
+      .n8n-chat-body,
+      .n8n-chat__body,
+      [class*="n8n-chat"][class*="body"]{
+        background: rgba(255,255,255,.03) !important;
+      }
+
+      /* Message bubbles */
+      .n8n-chat-message-bot,
+      .n8n-chat__message--bot,
+      [class*="message"][class*="bot"]{
+        background: var(--bubble-bot) !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        border-radius: 16px !important;
+        color: var(--text) !important;
+      }
+
+      .n8n-chat-message-user,
+      .n8n-chat__message--user,
+      [class*="message"][class*="user"]{
+        background: var(--bubble-user) !important;
+        border: 1px solid rgba(255,255,255,.12) !important;
+        border-radius: 16px !important;
+        color: #fff !important;
+      }
+
+      /* Message text / markdown */
+      .n8n-chat-message-bot a,
+      .n8n-chat__message--bot a{
+        color: #c4b5fd !important;
+      }
+
+      /* Composer / Input area */
+      .n8n-chat-input,
+      .n8n-chat__input,
+      [class*="n8n-chat"][class*="input"]{
+        background: rgba(255,255,255,.02) !important;
+        border-top: 1px solid rgba(255,255,255,.10) !important;
+      }
+
+      .n8n-chat-input textarea,
+      .n8n-chat__input textarea,
+      .n8n-chat-input input,
+      .n8n-chat__input input{
+        background: rgba(255,255,255,.06) !important;
+        border: 1px solid rgba(255,255,255,.12) !important;
+        color: var(--text) !important;
+        border-radius: 14px !important;
+        outline: none !important;
+      }
+
+      .n8n-chat-input textarea::placeholder,
+      .n8n-chat__input textarea::placeholder,
+      .n8n-chat-input input::placeholder,
+      .n8n-chat__input input::placeholder{
+        color: rgba(255,255,255,.55) !important;
+      }
+
+      /* Buttons */
+      .n8n-chat button,
+      .n8n-chat__button,
+      [class*="n8n-chat"] button{
+        border-radius: 12px !important;
+      }
+
+      /* Floating launcher button (wenn vorhanden) */
+      .n8n-chat-launcher,
+      .n8n-chat__launcher,
+      [class*="launcher"]{
+        box-shadow: var(--shadow) !important;
+        border: 1px solid rgba(255,255,255,.15) !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="hero">
+        <div>
+          <div class="pill"><span class="dot"></span> n8n Chat ist bereit</div>
+          <h1>Custom n8n Chat UI</h1>
+          <p>
+            Unten rechts kannst du den Chat öffnen. Styling ist per CSS überschrieben (Dark + Glass + Gradient).
+            Wenn du ein anderes Layout willst (z.B. links, fullscreen, feste Breite), sag kurz Bescheid.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3) n8n Chat Script -->
+    <script type="module">
+      import { createChat } from "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js";
+
+      createChat({
+        webhookUrl: "https://n8n.srv1019917.hstgr.cloud/webhook/3ae29039-2a5b-44df-94f0-f99ad00eee2b/chat",
+
+        // Optional UI-Text:
+        title: "Assistant",
+        subtitle: "Wie kann ich helfen?",
+        inputPlaceholder: "Schreib eine Nachricht…",
+
+        // Optional: erster Hinweis im Chat (je nach Version unterstützt)
+        // initialMessages: ["Hi! 👋 Was möchtest du wissen?"],
+      });
+    </script>
+  </body>
+</html>
