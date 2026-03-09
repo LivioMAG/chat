@@ -1,60 +1,581 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Mein AI Chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiting Workspace UI</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --surface: #ffffff;
+      --surface-muted: #f9fafc;
+      --text: #101828;
+      --muted: #667085;
+      --line: #e4e7ec;
+      --primary: #4f46e5;
+      --primary-soft: #eef2ff;
+      --success-soft: #ecfdf3;
+      --success: #027a48;
+      --warning-soft: #fffaeb;
+      --warning: #b54708;
+      --shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      --radius-xl: 20px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+    }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css">
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: var(--bg);
+    }
 
-<style>
+    .app {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      min-height: 100vh;
+    }
 
-/* Chatfenster größer */
-.n8n-chat-window {
-  width: 450px !important;
-  height: 650px !important;
-  border-radius: 20px !important;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3) !important;
-}
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--surface);
+      border-right: 1px solid var(--line);
+      padding: 20px 16px 24px;
+    }
 
-/* Header */
-.n8n-chat-header{
-  background:#111 !important;
-  color:white !important;
-}
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 10px;
+      margin-bottom: 18px;
+    }
 
-/* Bot Nachricht */
-.n8n-chat-message-bot{
-  background:#f1f1f1 !important;
-  border-radius:14px !important;
-}
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #4f46e5, #7c3aed);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
 
-/* User Nachricht */
-.n8n-chat-message-user{
-  background:#4f46e5 !important;
-  color:white !important;
-  border-radius:14px !important;
-}
+    .brand h1 { font-size: 15px; margin: 0; }
+    .brand p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
 
-/* Input Feld */
-.n8n-chat-input textarea{
-  border-radius:12px !important;
-  border:1px solid #ddd !important;
-}
+    .nav-group { margin: 18px 0; }
+    .nav-group-title {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 10px 8px;
+      font-weight: 600;
+    }
 
-</style>
+    .nav-item {
+      display: block;
+      text-decoration: none;
+      color: #344054;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin: 2px 0;
+      font-size: 14px;
+    }
 
+    .nav-item.active,
+    .nav-item:hover {
+      background: var(--primary-soft);
+      color: #312e81;
+      font-weight: 600;
+    }
+
+    .content-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 72px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      gap: 16px;
+    }
+
+    .topbar h2 { margin: 0; font-size: 18px; }
+
+    .search {
+      flex: 1;
+      max-width: 440px;
+      background: var(--surface-muted);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #344054;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #d0d5dd;
+    }
+
+    main {
+      padding: 28px;
+      overflow-x: hidden;
+    }
+
+    .breadcrumb {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .page-head h3 {
+      font-size: 28px;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .subline { color: var(--muted); margin-top: 6px; font-size: 14px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: #344054;
+    }
+
+    .badge.success { background: var(--success-soft); color: var(--success); border-color: #abefc6; }
+    .badge.optional { background: var(--warning-soft); color: var(--warning); border-color: #fedf89; }
+
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .kpi-title { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .kpi-value { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .modules {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .module-card h4 { margin: 0 0 10px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .switch {
+      width: 38px;
+      height: 22px;
+      border-radius: 999px;
+      background: #d0d5dd;
+      position: relative;
+    }
+
+    .switch::after {
+      content: "";
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+
+    .switch.on { background: #818cf8; }
+    .switch.on::after { left: 19px; }
+
+    .muted-module { opacity: .6; background: #f8fafc; }
+
+    .workspace-panels {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .input, .textarea, .select {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: #98a2b3;
+      font-size: 13px;
+      min-height: 40px;
+    }
+
+    .textarea { min-height: 96px; }
+
+    .stack { display: grid; gap: 16px; }
+
+    .funnel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .content-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #475467;
+      background: #fff;
+    }
+
+    .tab.active { background: var(--primary-soft); color: #312e81; border-color: #c7d2fe; }
+
+    .media-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 14px;
+    }
+
+    .dropzone {
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 14px;
+      background: #f8fafc;
+      min-height: 120px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .media-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .preview {
+      background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+      border-radius: 10px;
+      height: 84px;
+      margin-bottom: 8px;
+    }
+
+    .empty {
+      border: 1px dashed #d0d5dd;
+      border-radius: 12px;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 1200px) {
+      .card-grid-3, .modules, .workspace-panels, .funnel-grid { grid-template-columns: 1fr; }
+      .media-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 920px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .topbar { padding: 12px 16px; height: auto; flex-wrap: wrap; }
+      main { padding: 16px; }
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">SR</div>
+        <div>
+          <h1>Social Recruiting</h1>
+          <p>Campaign Workspace</p>
+        </div>
+      </div>
 
-<script type="module">
-import { createChat } from "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js";
+      <div class="nav-group">
+        <p class="nav-group-title">Meine Kampagne</p>
+        <a class="nav-item active" href="#dashboard">Allgemeine Infos</a>
+        <a class="nav-item" href="#kampagne">Unternehmensprofil</a>
+        <a class="nav-item" href="#kampagne">Arbeitgeberprofil</a>
+        <a class="nav-item" href="#kampagne">Ansprechpartner</a>
+      </div>
 
-createChat({
-  webhookUrl: "https://n8n.srv1019917.hstgr.cloud/webhook/3ae29039-2a5b-44df-94f0-f99ad00eee2b/chat",
-  title: "AI Assistant",
-  subtitle: "Wie kann ich helfen?"
-});
-</script>
+      <div class="nav-group">
+        <p class="nav-group-title">Mein Funnel</p>
+        <a class="nav-item" href="#funnel">Stellenprofil</a>
+        <a class="nav-item" href="#funnel">Aufgaben</a>
+        <a class="nav-item" href="#funnel">Anforderungen</a>
+        <a class="nav-item" href="#funnel">Benefits</a>
+        <a class="nav-item" href="#funnel">Arbeitsalltag</a>
+        <a class="nav-item" href="#funnel">Zielgruppe</a>
+        <a class="nav-item" href="#funnel">Bewerbungsprozess</a>
+        <a class="nav-item" href="#funnel">Plattformen &amp; Budget</a>
+      </div>
 
+      <div class="nav-group">
+        <p class="nav-group-title">Mein Content</p>
+        <a class="nav-item" href="#content">Bilder</a>
+        <a class="nav-item" href="#content">Videos</a>
+        <a class="nav-item" href="#content">Logos</a>
+        <a class="nav-item" href="#content">Brand Assets</a>
+        <a class="nav-item" href="#content">Sonstiges Material</a>
+      </div>
+    </aside>
+
+    <div class="content-wrap">
+      <header class="topbar">
+        <h2>Recruiting Workspace</h2>
+        <div class="search">🔎 Suche nach Modul, Content oder Ansprechpartner ...</div>
+        <div class="user-pill"><div class="avatar"></div> Team Lead HR</div>
+      </header>
+
+      <main>
+        <div id="dashboard" class="breadcrumb">Workspace / Dashboard</div>
+        <div class="page-head">
+          <div>
+            <h3>Recruiting Kampagne Pflegefachkraft</h3>
+            <div class="subline">Status: Entwurf aktiv · Letzte Aktualisierung vor 2 Stunden · Kampagnen-ID RK-2026-014</div>
+          </div>
+          <span class="badge success">● Aktiv in Bearbeitung</span>
+        </div>
+
+        <section class="card-grid-3">
+          <article class="card">
+            <div class="kpi-title">Meine Kampagne</div>
+            <div class="kpi-value">4 Bereiche</div>
+            <span class="badge">Informationen gepflegt</span>
+          </article>
+          <article class="card">
+            <div class="kpi-title">Mein Funnel</div>
+            <div class="kpi-value">8 Module</div>
+            <span class="badge">3 Pflicht · 5 Optional</span>
+          </article>
+          <article class="card">
+            <div class="kpi-title">Mein Content</div>
+            <div class="kpi-value">27 Assets</div>
+            <span class="badge">Bilder, Videos, Logos</span>
+          </article>
+        </section>
+
+        <section class="modules">
+          <article class="card module-card">
+            <h4>Aktive Module im Funnel <span class="badge success">Aktiviert</span></h4>
+            <p class="subline">Stellenprofil · Aufgaben · Anforderungen · Benefits · Zielgruppe</p>
+          </article>
+          <article class="card module-card">
+            <h4>Optionale Module hinzufügen <span class="badge optional">Optional</span></h4>
+            <p class="subline">Arbeitsalltag · Bewerbungsprozess · Plattformen &amp; Budget</p>
+          </article>
+        </section>
+
+        <section class="workspace-panels" id="kampagne">
+          <article class="card">
+            <h4 class="section-title">Meine Kampagne</h4>
+            <div class="stack">
+              <div>
+                <strong>Allgemeine Infos</strong>
+                <div class="form-grid" style="margin-top:8px;">
+                  <div class="input">Kampagnentitel</div>
+                  <div class="input">Standort / Region</div>
+                  <div class="select">Beschäftigungsart wählen</div>
+                  <div class="input">Geplanter Start</div>
+                </div>
+              </div>
+              <div>
+                <strong>Unternehmensprofil</strong>
+                <div class="textarea" style="margin-top:8px;">Unternehmensbeschreibung, Kultur, Werte ...</div>
+              </div>
+            </div>
+          </article>
+
+          <div class="stack">
+            <article class="card">
+              <h4 class="section-title">Arbeitgeberprofil</h4>
+              <div class="textarea">Warum sollten Bewerber hier arbeiten? EVP, Benefits, Teamkultur ...</div>
+            </article>
+            <article class="card">
+              <h4 class="section-title">Ansprechpartner</h4>
+              <div class="form-grid">
+                <div class="input">Name</div>
+                <div class="input">Rolle</div>
+                <div class="input">E-Mail</div>
+                <div class="input">Telefon</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="funnel" class="card" style="margin-bottom:24px;">
+          <h4 class="section-title">Mein Funnel</h4>
+          <p class="subline" style="margin-top:-4px; margin-bottom:14px;">Modularer Arbeitsbereich mit Pflichtmodulen und optionalen Erweiterungen.</p>
+          <div class="funnel-grid">
+            <article class="card module-card">
+              <h4>Stellenprofil <span class="badge">Pflicht</span></h4>
+              <div class="form-grid">
+                <div class="input">Jobtitel</div><div class="input">Arbeitsort</div>
+                <div class="select">Beschäftigungsart</div><div class="input">Startdatum</div>
+              </div>
+            </article>
+            <article class="card module-card">
+              <h4>Aufgaben <span class="badge">Pflicht</span></h4>
+              <div class="textarea">Aufgabenliste, Verantwortlichkeiten, Tagesgeschäft ...</div>
+            </article>
+            <article class="card module-card">
+              <h4>Anforderungen <span class="badge">Pflicht</span></h4>
+              <div class="textarea">Ausbildung, Erfahrung, Hard Skills, Soft Skills ...</div>
+            </article>
+            <article class="card module-card">
+              <h4>Benefits <span class="badge optional">Optional</span></h4>
+              <div class="textarea">Gehalt, Homeoffice, Weiterbildung, Bonus ...</div>
+              <div class="switch-row"><span>Status: Aktiviert</span><span class="switch on"></span></div>
+            </article>
+            <article class="card module-card muted-module">
+              <h4>Arbeitsalltag <span class="badge optional">Optional</span></h4>
+              <div class="textarea">Team, Arbeitszeiten, Tools, typische Abläufe ...</div>
+              <div class="switch-row"><span>Status: Nicht aktiv</span><span class="switch"></span></div>
+            </article>
+            <article class="card module-card">
+              <h4>Zielgruppe <span class="badge optional">Optional</span></h4>
+              <div class="form-grid">
+                <div class="input">Region</div><div class="input">Erfahrungslevel</div>
+                <div class="input">Sprache</div><div class="input">Branche</div>
+              </div>
+              <div class="switch-row"><span>Status: Aktiviert</span><span class="switch on"></span></div>
+            </article>
+            <article class="card module-card muted-module">
+              <h4>Bewerbungsprozess <span class="badge optional">Optional</span></h4>
+              <div class="input">Formular / WhatsApp / E-Mail / Ansprechpartner</div>
+              <div class="switch-row"><span>Status: Nicht aktiv</span><span class="switch"></span></div>
+            </article>
+            <article class="card module-card muted-module">
+              <h4>Plattformen &amp; Budget <span class="badge optional">Optional</span></h4>
+              <div class="form-grid">
+                <div class="input">Meta</div><div class="input">LinkedIn</div>
+                <div class="input">TikTok</div><div class="input">Budget & Laufzeit</div>
+              </div>
+              <div class="switch-row"><span>Status: Nicht aktiv</span><span class="switch"></span></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="content" class="card">
+          <h4 class="section-title">Mein Content</h4>
+          <div class="content-tabs">
+            <div class="tab active">Bilder</div>
+            <div class="tab">Videos</div>
+            <div class="tab">Logos</div>
+            <div class="tab">Brand Assets</div>
+            <div class="tab">Sonstiges Material</div>
+          </div>
+          <div class="media-layout">
+            <aside class="card" style="padding:14px; box-shadow:none;">
+              <strong style="font-size:14px;">Filter (visuell)</strong>
+              <div class="input" style="margin-top:8px;">Dateityp wählen</div>
+              <div class="input" style="margin-top:8px;">Tag auswählen</div>
+              <div class="input" style="margin-top:8px;">Zuletzt bearbeitet</div>
+            </aside>
+            <div>
+              <div class="dropzone">⬆️ Dateien hier ablegen oder per Klick hochladen<br/>(Nur UI-Platzhalter)</div>
+              <div class="media-grid">
+                <article class="media-card"><div class="preview"></div><strong>team-shooting-01.jpg</strong><div class="subline">2.4 MB · Bild</div></article>
+                <article class="media-card"><div class="preview"></div><strong>office-tour.mp4</strong><div class="subline">18 MB · Video</div></article>
+                <article class="media-card"><div class="preview"></div><strong>brand-logo.svg</strong><div class="subline">230 KB · Logo</div></article>
+              </div>
+              <div class="empty">🗂️ Zuletzt bearbeitet: „LinkedIn-Anzeige_V3“, „Benefits-Grafik“, „Teamfoto-Set“</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
 </body>
 </html>
