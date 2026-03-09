@@ -292,6 +292,41 @@
       gap: 14px;
     }
 
+    .modal-grid.single-column { grid-template-columns: 1fr; }
+
+    .field.hidden { display: none; }
+
+    .list-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      max-height: 240px;
+      overflow: auto;
+    }
+
+    .image-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .image-item label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
     .field { display: grid; gap: 6px; margin-bottom: 10px; }
     .field label { font-size: 13px; color: var(--muted); font-weight: 600; }
 
@@ -318,8 +353,8 @@
       <div class="brand-sub">Datensammelstelle</div>
       <nav>
         <button class="nav-btn active" data-page="forum">💬 Forum</button>
-        <button class="nav-btn" data-page="landing">📄 Landingpage</button>
-        <button class="nav-btn" data-page="funnel">🧭 Funnel</button>
+        <button class="nav-btn" data-page="landing">📄 Funnel</button>
+        <button class="nav-btn" data-page="funnel">🧭 Landingpage</button>
         <button class="nav-btn" data-page="ad">📣 Werbeanzeige</button>
       </nav>
     </aside>
@@ -346,11 +381,11 @@
       </section>
 
       <section id="landing" class="page">
-        <h2 class="page-title">Landingpage</h2>
-        <p class="page-description">Pro Kategorie ist genau ein Eintrag erlaubt. KI-Zusammenfassung ist nur lesbar.</p>
+        <h2 class="page-title">Funnel</h2>
+        <p class="page-description">Mehrere Einträge pro Kategorie erlaubt. Die KI-Analyse startet erst beim Speichern.</p>
 
         <div class="landing-head">
-          <span class="muted">Einträge für Landingpage-Inhalte</span>
+          <span class="muted">Einträge für Funnel-Inhalte</span>
           <button id="newEntryBtn" class="btn btn-primary">+ Neuer Eintrag</button>
         </div>
 
@@ -370,7 +405,7 @@
       </section>
 
       <section id="funnel" class="page">
-        <h2 class="page-title">Funnel</h2>
+        <h2 class="page-title">Landingpage</h2>
         <p class="page-description">Platzhalter für die nächste Ausbaustufe.</p>
         <div class="placeholder-grid">
           <div class="card">Funnel-Logik und Schritte folgen im nächsten Schritt.</div>
@@ -392,11 +427,11 @@
   <div id="entryModal" class="modal" aria-hidden="true">
     <div class="modal-card">
       <h3 id="modalTitle" style="margin:0 0 12px">Neuen Eintrag erstellen</h3>
-      <div class="modal-grid">
+      <div id="modalGrid" class="modal-grid single-column">
         <div>
           <div class="field">
             <label for="entryKeywords">Stichwortartige Beschreibung (editierbar)</label>
-            <textarea id="entryKeywords" placeholder="z. B. Familienbetrieb, 80%, Start ab sofort, Weiterbildung"></textarea>
+            <textarea id="entryKeywords" style="min-height:240px" placeholder="z. B. Familienbetrieb, 80%, Start ab sofort, Weiterbildung"></textarea>
           </div>
 
           <div class="field">
@@ -410,19 +445,26 @@
               <option>Benefits</option>
               <option>Arbeitgeberprofil</option>
               <option>Arbeitsalltag</option>
+              <option>Referenzen</option>
+              <option>Mitarbeiterzitate</option>
+              <option>Sonstiger Content</option>
             </select>
           </div>
-        </div>
 
-        <div>
           <div class="field">
             <label for="entryAi">KI-Zusammenfassung (nicht editierbar)</label>
-            <textarea id="entryAi" readonly>Die KI-Zusammenfassung erscheint hier nach der Eingabe.</textarea>
+            <textarea id="entryAi" readonly>Wird gleich analysiert.</textarea>
           </div>
 
-          <div class="field">
-            <label for="entryComment">Kommentar zur KI (wird nach neuer Analyse zurückgesetzt)</label>
-            <textarea id="entryComment" placeholder="Was passt noch nicht?"></textarea>
+          <div id="singleImageField" class="field hidden">
+            <label for="entryImage">Bild (nur Referenzen & Mitarbeiterzitate)</label>
+            <input id="entryImage" type="file" accept="image/*" />
+          </div>
+
+          <div id="contentImageField" class="field hidden">
+            <label for="entryContentImages">Sonstiger Content – bis zu 10 Bilder</label>
+            <input id="entryContentImages" type="file" accept="image/*" multiple />
+            <div id="contentImageList" class="list-card muted">Noch keine Bilder ausgewählt.</div>
           </div>
         </div>
       </div>
@@ -430,7 +472,6 @@
       <div id="modalInfo" class="info"></div>
 
       <div class="row">
-        <button id="reanalyzeBtn" class="btn btn-secondary" type="button">Neu analysieren</button>
         <button id="closeModalBtn" class="btn btn-secondary" type="button">Abbrechen</button>
         <button id="saveEntryBtn" class="btn btn-primary" type="button">Speichern</button>
       </div>
@@ -480,25 +521,59 @@
     });
 
     const modal = document.getElementById('entryModal');
+    const modalGrid = document.getElementById('modalGrid');
     const newEntryBtn = document.getElementById('newEntryBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const saveEntryBtn = document.getElementById('saveEntryBtn');
-    const reanalyzeBtn = document.getElementById('reanalyzeBtn');
     const landingTableBody = document.getElementById('landingTableBody');
     const entryKeywords = document.getElementById('entryKeywords');
     const entryCategory = document.getElementById('entryCategory');
     const entryAi = document.getElementById('entryAi');
-    const entryComment = document.getElementById('entryComment');
+    const entryImage = document.getElementById('entryImage');
+    const entryContentImages = document.getElementById('entryContentImages');
+    const contentImageList = document.getElementById('contentImageList');
+    const singleImageField = document.getElementById('singleImageField');
+    const contentImageField = document.getElementById('contentImageField');
     const modalInfo = document.getElementById('modalInfo');
     const modalTitle = document.getElementById('modalTitle');
 
     const entries = [];
+    const imageStates = new Map();
     let editingId = null;
 
-    function generateAiSummary(text, category) {
-      if (!text.trim()) return 'Die KI-Zusammenfassung erscheint hier nach der Eingabe.';
-      const cat = category || 'Allgemein';
-      return `Kategorie: ${cat}\n\nKI-Interpretation:\n- Kernpunkte: ${text.trim()}\n- Strukturierter Vorschlag: Inhalte in Landingpage-Sektionen ausspielen.`;
+    function isImageCategory(category) {
+      return category === 'Referenzen' || category === 'Mitarbeiterzitate';
+    }
+
+    function isContentCategory(category) {
+      return category === 'Sonstiger Content';
+    }
+
+    function updateAiPlaceholder() {
+      if (entryKeywords.value.trim()) {
+        entryAi.value = 'Wird gleich analysiert.';
+      } else {
+        entryAi.value = 'Wird gleich analysiert.';
+      }
+    }
+
+    function applyCategoryLayout() {
+      const category = entryCategory.value;
+      const contentMode = isContentCategory(category);
+
+      singleImageField.classList.toggle('hidden', !isImageCategory(category));
+      contentImageField.classList.toggle('hidden', !contentMode);
+      entryKeywords.disabled = contentMode;
+      entryKeywords.placeholder = contentMode
+        ? 'Bei Sonstiger Content werden nur Bilder verwendet.'
+        : 'z. B. Familienbetrieb, 80%, Start ab sofort, Weiterbildung';
+      if (contentMode) {
+        entryKeywords.value = '';
+      }
+
+      modalGrid.classList.toggle('single-column', true);
+      updateAiPlaceholder();
+      renderContentImageList();
     }
 
     function openModal(entry = null) {
@@ -508,18 +583,23 @@
       if (entry) {
         editingId = entry.id;
         modalTitle.textContent = 'Eintrag bearbeiten';
-        entryKeywords.value = entry.keywords;
+        entryKeywords.value = entry.keywords || '';
         entryCategory.value = entry.category;
         entryAi.value = entry.ai;
-        entryComment.value = entry.comment;
+        entryImage.value = '';
+        entryContentImages.value = '';
+        imageStates.set(editingId, entry.contentImages || []);
       } else {
         editingId = null;
         modalTitle.textContent = 'Neuen Eintrag erstellen';
         entryKeywords.value = '';
         entryCategory.value = '';
-        entryAi.value = 'Die KI-Zusammenfassung erscheint hier nach der Eingabe.';
-        entryComment.value = '';
+        entryAi.value = 'Wird gleich analysiert.';
+        entryImage.value = '';
+        entryContentImages.value = '';
+        imageStates.set('new', []);
       }
+      applyCategoryLayout();
     }
 
     function closeModal() {
@@ -533,6 +613,51 @@
       });
     }
 
+    function getCurrentImagesState() {
+      return imageStates.get(editingId || 'new') || [];
+    }
+
+    function setCurrentImagesState(images) {
+      imageStates.set(editingId || 'new', images);
+    }
+
+    function renderContentImageList() {
+      const images = getCurrentImagesState();
+      if (!images.length) {
+        contentImageList.innerHTML = 'Noch keine Bilder ausgewählt.';
+        contentImageList.classList.add('muted');
+        return;
+      }
+
+      contentImageList.classList.remove('muted');
+      contentImageList.innerHTML = '';
+      images.forEach((img) => {
+        const row = document.createElement('div');
+        row.className = 'image-item';
+        row.innerHTML = `
+          <span>${img.name}</span>
+          <label>
+            <input type="checkbox" data-header-image-id="${img.id}" ${img.featured ? 'checked' : ''} />
+            Wichtiges Header-Bild
+          </label>
+        `;
+        contentImageList.appendChild(row);
+      });
+    }
+
+    function generateAiSummary(text, category) {
+      const cat = category || 'Allgemein';
+      if (isContentCategory(cat)) {
+        return 'Bildanalyse für Sonstiger Content wird beim Speichern durchgeführt.';
+      }
+      if (!text.trim()) return 'Wird gleich analysiert.';
+      return `Kategorie: ${cat}
+
+KI-Interpretation:
+- Kernpunkte: ${text.trim()}
+- Strukturierter Vorschlag: Inhalte in Funnel-Sektionen ausspielen.`;
+    }
+
     function renderTable() {
       landingTableBody.innerHTML = '';
       if (!entries.length) {
@@ -541,11 +666,15 @@
       }
 
       entries.forEach((entry) => {
+        const info = isContentCategory(entry.category)
+          ? `${entry.contentImages?.length || 0} Bild(er)`
+          : entry.category;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><input type="checkbox" ${entry.selected ? 'checked' : ''} data-select-id="${entry.id}" /></td>
           <td>${formatDate(entry.updatedAt)}</td>
-          <td><span class="pill">${entry.category}</span></td>
+          <td><span class="pill">${info}</span></td>
           <td>
             <button class="icon-btn" data-edit-id="${entry.id}" title="Bearbeiten">✏️</button>
             <button class="icon-btn delete" data-delete-id="${entry.id}" title="Löschen">🗑️</button>
@@ -558,41 +687,81 @@
     newEntryBtn.addEventListener('click', () => openModal());
     closeModalBtn.addEventListener('click', closeModal);
 
-    entryKeywords.addEventListener('input', () => {
-      entryAi.value = generateAiSummary(entryKeywords.value, entryCategory.value);
-    });
+    entryKeywords.addEventListener('input', updateAiPlaceholder);
 
     entryCategory.addEventListener('change', () => {
-      entryAi.value = generateAiSummary(entryKeywords.value, entryCategory.value);
+      applyCategoryLayout();
+      modalInfo.textContent = '';
     });
 
-    reanalyzeBtn.addEventListener('click', () => {
-      entryAi.value = generateAiSummary(entryKeywords.value, entryCategory.value);
-      entryComment.value = '';
-      modalInfo.textContent = 'Neu analysiert. Kommentar wurde zurückgesetzt.';
+    entryContentImages.addEventListener('change', () => {
+      const selected = Array.from(entryContentImages.files || []);
+      if (selected.length > 10) {
+        modalInfo.textContent = 'Bitte maximal 10 Bilder auswählen.';
+        setCurrentImagesState([]);
+        entryContentImages.value = '';
+        renderContentImageList();
+        return;
+      }
+
+      const mapped = selected.map((file) => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        featured: false
+      }));
+      setCurrentImagesState(mapped);
+      modalInfo.textContent = '';
+      renderContentImageList();
+    });
+
+    contentImageList.addEventListener('change', (e) => {
+      const imageId = e.target.getAttribute('data-header-image-id');
+      if (!imageId) return;
+      const images = getCurrentImagesState().map((img) => {
+        if (img.id === imageId) {
+          return { ...img, featured: e.target.checked };
+        }
+        return img;
+      });
+      setCurrentImagesState(images);
     });
 
     saveEntryBtn.addEventListener('click', () => {
       const keywords = entryKeywords.value.trim();
       const category = entryCategory.value;
+      const contentImages = getCurrentImagesState();
+      const requiresSingleImage = isImageCategory(category);
+      const singleImageName = entryImage.files?.[0]?.name || '';
 
-      if (!keywords || !category) {
-        modalInfo.textContent = 'Bitte Stichworte und Kategorie ausfüllen.';
+      if (!category) {
+        modalInfo.textContent = 'Bitte Kategorie auswählen.';
         return;
       }
 
-      const categoryExists = entries.some((e) => e.category === category && e.id !== editingId);
-      if (categoryExists) {
-        modalInfo.textContent = 'Für diese Kategorie existiert bereits ein Eintrag.';
+      if (!isContentCategory(category) && !keywords) {
+        modalInfo.textContent = 'Bitte Stichworte ausfüllen.';
         return;
       }
+
+      if (requiresSingleImage && !singleImageName && !editingId) {
+        modalInfo.textContent = 'Für diese Kategorie muss ein Bild hochgeladen werden.';
+        return;
+      }
+
+      if (isContentCategory(category) && !contentImages.length) {
+        modalInfo.textContent = 'Bitte mindestens ein Bild für Sonstiger Content hochladen.';
+        return;
+      }
+
+      const aiSummary = generateAiSummary(keywords, category);
 
       if (editingId) {
         const current = entries.find((e) => e.id === editingId);
         current.keywords = keywords;
         current.category = category;
-        current.ai = entryAi.value;
-        current.comment = entryComment.value.trim();
+        current.ai = aiSummary;
+        current.singleImageName = singleImageName || current.singleImageName || '';
+        current.contentImages = contentImages;
         current.updatedAt = Date.now();
       } else {
         entries.push({
@@ -600,8 +769,9 @@
           selected: false,
           keywords,
           category,
-          ai: entryAi.value,
-          comment: entryComment.value.trim(),
+          ai: aiSummary,
+          singleImageName,
+          contentImages,
           updatedAt: Date.now()
         });
       }
