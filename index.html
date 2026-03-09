@@ -3,103 +3,183 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recruiting Workspace UI</title>
+  <title>Recruiting Plattform Workspace</title>
   <style>
     :root {
-      --bg: #f6f8fc;
-      --surface: #fff;
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-2: #f9fafb;
       --line: #e4e7ec;
       --text: #101828;
       --muted: #667085;
-      --primary: #4f46e5;
-      --primary-soft: #eef2ff;
-      --radius: 14px;
-      --shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      --primary: #6d5efc;
+      --primary-soft: #f2f0ff;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --shadow: 0 8px 32px rgba(16, 24, 40, 0.08);
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color: var(--text);
-      background: var(--bg);
+      background: radial-gradient(circle at top right, #eef2ff 0%, var(--bg) 35%);
+      min-height: 100vh;
     }
 
-    .app {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
+    .app-shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .brand-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      padding: 12px 14px;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #344054;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover { background: #f2f4f7; }
+
+    .nav-btn.active {
+      background: var(--primary-soft);
+      border-color: #d8d2ff;
+      color: #382d9c;
+      font-weight: 600;
+    }
+
+    .main {
+      padding: 20px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
     }
 
     .topbar {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(6px);
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      justify-content: space-between;
       gap: 16px;
     }
 
     .topbar h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 18px;
     }
 
-    .meta {
+    .status {
       color: var(--muted);
-      font-size: 14px;
-    }
-
-    .page-nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-
-    .page-btn {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--surface);
-      padding: 10px 14px;
-      font-size: 14px;
-      color: #344054;
-      cursor: pointer;
-    }
-
-    .page-btn.active {
-      background: var(--primary-soft);
-      border-color: #c7d2fe;
-      color: #312e81;
-      font-weight: 600;
+      font-size: 13px;
     }
 
     .page {
       display: none;
-      background: var(--surface);
       border: 1px solid var(--line);
       border-radius: 20px;
+      background: var(--surface);
       box-shadow: var(--shadow);
       padding: 20px;
+      overflow: auto;
     }
 
     .page.active { display: block; }
 
-    .title {
-      margin: 0 0 14px;
+    .page-title {
+      margin: 0;
       font-size: 22px;
     }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+    .page-description {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-size: 14px;
     }
 
-    .field { display: grid; gap: 6px; }
-    .field label {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 600;
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-2);
+      padding: 14px;
+    }
+
+    .chat-wrap {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 62vh;
+      gap: 12px;
+    }
+
+    .chat-messages {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: auto;
+    }
+
+    .bubble {
+      max-width: 76%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .bubble.bot {
+      background: #f2f4f7;
+      align-self: flex-start;
+    }
+
+    .bubble.user {
+      background: var(--primary-soft);
+      align-self: flex-end;
+    }
+
+    .chat-input-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
     }
 
     input, textarea, select {
@@ -108,163 +188,451 @@
       border-radius: 12px;
       padding: 10px 12px;
       font-size: 14px;
+      font-family: inherit;
       color: #111827;
       background: #fff;
     }
 
-    textarea { min-height: 130px; resize: vertical; }
+    textarea { min-height: 110px; resize: vertical; }
 
-    .card {
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #fff; border-color: var(--line); color: #344054; }
+
+    .landing-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
       border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 14px;
+      border-radius: 12px;
+      overflow: hidden;
       background: #fff;
     }
 
-    .card h3 {
-      margin: 0 0 10px;
-      font-size: 16px;
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      font-size: 14px;
+      text-align: left;
     }
 
-    .content-layout {
+    th { background: #f8f9fc; color: #475467; }
+    tr:last-child td { border-bottom: 0; }
+
+    .icon-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      padding: 6px 8px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+    .icon-btn.delete { color: var(--danger); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: #1e3a8a;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .muted { color: var(--muted); }
+
+    .placeholder-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 24, 40, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(860px, 100%);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .modal-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-      margin-bottom: 14px;
     }
 
-    .hint {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 6px;
+    .field { display: grid; gap: 6px; margin-bottom: 10px; }
+    .field label { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+    .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+
+    .info {
+      font-size: 13px;
+      margin-top: 8px;
+      color: var(--success);
+      min-height: 18px;
     }
 
-    @media (max-width: 860px) {
-      .grid-2, .content-layout { grid-template-columns: 1fr; }
-      .app { padding: 16px; }
+    @media (max-width: 980px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .modal-grid, .placeholder-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div>
-        <h1>Recruiting Workspace</h1>
-        <div class="meta">Kampagnen-ID RK-2026-014 · Status: Entwurf aktiv</div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">Recruiting OS</div>
+      <div class="brand-sub">Datensammelstelle</div>
+      <nav>
+        <button class="nav-btn active" data-page="forum">💬 Forum</button>
+        <button class="nav-btn" data-page="landing">📄 Landingpage</button>
+        <button class="nav-btn" data-page="funnel">🧭 Funnel</button>
+        <button class="nav-btn" data-page="ad">📣 Werbeanzeige</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <h1>Recruiting Plattform Workspace</h1>
+        <div class="status">App-Bar Platzhalter · Backend: Supabase (später)</div>
+      </header>
+
+      <section id="forum" class="page active">
+        <h2 class="page-title">Forum (Chatbot)</h2>
+        <p class="page-description">Hier wird der aktuelle Stand der Inhalte laufend kommuniziert.</p>
+        <div class="chat-wrap">
+          <div id="chatMessages" class="chat-messages">
+            <div class="bubble bot">Willkommen! Ich informiere dich laufend, was aktuell up-to-date ist.</div>
+            <div class="bubble bot">Hinweis: Änderungen in der Landingpage können jederzeit bearbeitet werden.</div>
+          </div>
+          <div class="chat-input-row">
+            <input id="chatInput" type="text" placeholder="Nachricht eingeben ..." />
+            <button id="sendChat" class="btn btn-primary">Senden</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="landing" class="page">
+        <h2 class="page-title">Landingpage</h2>
+        <p class="page-description">Pro Kategorie ist genau ein Eintrag erlaubt. KI-Zusammenfassung ist nur lesbar.</p>
+
+        <div class="landing-head">
+          <span class="muted">Einträge für Landingpage-Inhalte</span>
+          <button id="newEntryBtn" class="btn btn-primary">+ Neuer Eintrag</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:70px">Auswahl</th>
+              <th style="width:170px">Zuletzt geändert</th>
+              <th>Kategorie</th>
+              <th style="width:150px">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="landingTableBody">
+            <tr><td colspan="4" class="muted">Noch keine Einträge vorhanden.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="funnel" class="page">
+        <h2 class="page-title">Funnel</h2>
+        <p class="page-description">Platzhalter für die nächste Ausbaustufe.</p>
+        <div class="placeholder-grid">
+          <div class="card">Funnel-Logik und Schritte folgen im nächsten Schritt.</div>
+          <div class="card">Später mit Landingpage & Chat-Ablauf verknüpft.</div>
+        </div>
+      </section>
+
+      <section id="ad" class="page">
+        <h2 class="page-title">Werbeanzeige</h2>
+        <p class="page-description">Platzhalter für die nächste Ausbaustufe.</p>
+        <div class="placeholder-grid">
+          <div class="card">Anzeigen-Varianten / Creatives kommen später.</div>
+          <div class="card">Später an Kampagnensteuerung anbinden.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="entryModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="modalTitle" style="margin:0 0 12px">Neuen Eintrag erstellen</h3>
+      <div class="modal-grid">
+        <div>
+          <div class="field">
+            <label for="entryKeywords">Stichwortartige Beschreibung (editierbar)</label>
+            <textarea id="entryKeywords" placeholder="z. B. Familienbetrieb, 80%, Start ab sofort, Weiterbildung"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="entryCategory">Kategorie</label>
+            <select id="entryCategory">
+              <option value="">Bitte wählen ...</option>
+              <option>Stammdaten</option>
+              <option>Stellenprofile</option>
+              <option>Unternehmensprofil</option>
+              <option>Aufgaben</option>
+              <option>Benefits</option>
+              <option>Arbeitgeberprofil</option>
+              <option>Arbeitsalltag</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div class="field">
+            <label for="entryAi">KI-Zusammenfassung (nicht editierbar)</label>
+            <textarea id="entryAi" readonly>Die KI-Zusammenfassung erscheint hier nach der Eingabe.</textarea>
+          </div>
+
+          <div class="field">
+            <label for="entryComment">Kommentar zur KI (wird nach neuer Analyse zurückgesetzt)</label>
+            <textarea id="entryComment" placeholder="Was passt noch nicht?"></textarea>
+          </div>
+        </div>
       </div>
-    </header>
 
-    <nav class="page-nav" aria-label="Seiten-Navigation">
-      <button class="page-btn active" data-page="allgemein">Allgemeine Daten</button>
-      <button class="page-btn" data-page="funnel">Funnel Daten</button>
-      <button class="page-btn" data-page="content">Content Erfassung</button>
-    </nav>
+      <div id="modalInfo" class="info"></div>
 
-    <section id="allgemein" class="page active">
-      <h2 class="title">Allgemeine Daten</h2>
-      <div class="grid-2">
-        <div class="field">
-          <label>Kampagnentitel</label>
-          <input type="text" placeholder="z. B. Pflegefachkraft München" />
-        </div>
-        <div class="field">
-          <label>Standort / Region</label>
-          <input type="text" placeholder="z. B. München & Umgebung" />
-        </div>
-        <div class="field">
-          <label>Beschäftigungsart</label>
-          <select>
-            <option>Bitte wählen</option>
-            <option>Vollzeit</option>
-            <option>Teilzeit</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Geplanter Start</label>
-          <input type="date" />
-        </div>
+      <div class="row">
+        <button id="reanalyzeBtn" class="btn btn-secondary" type="button">Neu analysieren</button>
+        <button id="closeModalBtn" class="btn btn-secondary" type="button">Abbrechen</button>
+        <button id="saveEntryBtn" class="btn btn-primary" type="button">Speichern</button>
       </div>
-    </section>
-
-    <section id="funnel" class="page">
-      <h2 class="title">Funnel Daten</h2>
-      <div class="grid-2">
-        <article class="card">
-          <h3>Stellenprofil</h3>
-          <div class="field">
-            <label>Jobtitel</label>
-            <input type="text" placeholder="z. B. Pflegefachkraft" />
-          </div>
-          <div class="field">
-            <label>Arbeitsort</label>
-            <input type="text" placeholder="z. B. München" />
-          </div>
-        </article>
-
-        <article class="card">
-          <h3>Anforderungen</h3>
-          <div class="field">
-            <label>Stichpunkte</label>
-            <textarea placeholder="z. B. Examinierte Pflegefachkraft, Teamfähigkeit, Schichtbereitschaft"></textarea>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section id="content" class="page">
-      <h2 class="title">Content Erfassung</h2>
-      <div class="content-layout">
-        <article class="card">
-          <h3>Beschreibung durch den User</h3>
-          <div class="field">
-            <label>Stichwortartige Beschreibung</label>
-            <textarea id="userInput" placeholder="z. B. familiäres Team, moderne Station, Fortbildungen, gute Lage"></textarea>
-          </div>
-          <p class="hint">Der User kann hier frei seine Stichworte eingeben.</p>
-        </article>
-
-        <article class="card">
-          <h3>Interpretation der KI (nicht editierbar)</h3>
-          <div class="field">
-            <label>KI-Auswertung</label>
-            <textarea id="aiInterpretation" readonly>Die KI-Interpretation erscheint hier automatisch basierend auf den Stichpunkten.</textarea>
-          </div>
-          <p class="hint">Dieses Feld ist absichtlich gesperrt (readonly).</p>
-        </article>
-      </div>
-
-      <article class="card">
-        <h3>Kommentare</h3>
-        <div class="field">
-          <label>Eigene Kommentare zur KI-Interpretation</label>
-          <textarea placeholder="Hier kann der User Kommentare oder Korrekturen ergänzen."></textarea>
-        </div>
-      </article>
-    </section>
+    </div>
   </div>
 
   <script>
-    const buttons = document.querySelectorAll('.page-btn');
+    const navButtons = document.querySelectorAll('.nav-btn');
     const pages = document.querySelectorAll('.page');
 
-    buttons.forEach((button) => {
+    navButtons.forEach((button) => {
       button.addEventListener('click', () => {
-        buttons.forEach((b) => b.classList.remove('active'));
-        pages.forEach((page) => page.classList.remove('active'));
-
+        navButtons.forEach((b) => b.classList.remove('active'));
+        pages.forEach((p) => p.classList.remove('active'));
         button.classList.add('active');
         document.getElementById(button.dataset.page).classList.add('active');
       });
     });
 
-    const userInput = document.getElementById('userInput');
-    const aiInterpretation = document.getElementById('aiInterpretation');
+    const chatInput = document.getElementById('chatInput');
+    const sendChat = document.getElementById('sendChat');
+    const chatMessages = document.getElementById('chatMessages');
 
-    userInput.addEventListener('input', () => {
-      const text = userInput.value.trim();
-      aiInterpretation.value = text
-        ? `KI-Interpretation:\n- Fokus: ${text}\n- Vorschlag: Diese Punkte sollten in strukturierte Content-Bausteine übersetzt werden.`
-        : 'Die KI-Interpretation erscheint hier automatisch basierend auf den Stichpunkten.';
+    function pushChat(message, role) {
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${role}`;
+      bubble.textContent = message;
+      chatMessages.appendChild(bubble);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function botReply(userMessage) {
+      const short = userMessage.length > 80 ? `${userMessage.slice(0, 80)}...` : userMessage;
+      pushChat(`Update erhalten: "${short}". Ich halte den aktuellen Stand im Forum synchron.`, 'bot');
+    }
+
+    sendChat.addEventListener('click', () => {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      pushChat(text, 'user');
+      chatInput.value = '';
+      setTimeout(() => botReply(text), 300);
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendChat.click();
+    });
+
+    const modal = document.getElementById('entryModal');
+    const newEntryBtn = document.getElementById('newEntryBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const saveEntryBtn = document.getElementById('saveEntryBtn');
+    const reanalyzeBtn = document.getElementById('reanalyzeBtn');
+    const landingTableBody = document.getElementById('landingTableBody');
+    const entryKeywords = document.getElementById('entryKeywords');
+    const entryCategory = document.getElementById('entryCategory');
+    const entryAi = document.getElementById('entryAi');
+    const entryComment = document.getElementById('entryComment');
+    const modalInfo = document.getElementById('modalInfo');
+    const modalTitle = document.getElementById('modalTitle');
+
+    const entries = [];
+    let editingId = null;
+
+    function generateAiSummary(text, category) {
+      if (!text.trim()) return 'Die KI-Zusammenfassung erscheint hier nach der Eingabe.';
+      const cat = category || 'Allgemein';
+      return `Kategorie: ${cat}\n\nKI-Interpretation:\n- Kernpunkte: ${text.trim()}\n- Strukturierter Vorschlag: Inhalte in Landingpage-Sektionen ausspielen.`;
+    }
+
+    function openModal(entry = null) {
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      modalInfo.textContent = '';
+      if (entry) {
+        editingId = entry.id;
+        modalTitle.textContent = 'Eintrag bearbeiten';
+        entryKeywords.value = entry.keywords;
+        entryCategory.value = entry.category;
+        entryAi.value = entry.ai;
+        entryComment.value = entry.comment;
+      } else {
+        editingId = null;
+        modalTitle.textContent = 'Neuen Eintrag erstellen';
+        entryKeywords.value = '';
+        entryCategory.value = '';
+        entryAi.value = 'Die KI-Zusammenfassung erscheint hier nach der Eingabe.';
+        entryComment.value = '';
+      }
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function formatDate(value) {
+      return new Date(value).toLocaleDateString('de-CH', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+    }
+
+    function renderTable() {
+      landingTableBody.innerHTML = '';
+      if (!entries.length) {
+        landingTableBody.innerHTML = '<tr><td colspan="4" class="muted">Noch keine Einträge vorhanden.</td></tr>';
+        return;
+      }
+
+      entries.forEach((entry) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="checkbox" ${entry.selected ? 'checked' : ''} data-select-id="${entry.id}" /></td>
+          <td>${formatDate(entry.updatedAt)}</td>
+          <td><span class="pill">${entry.category}</span></td>
+          <td>
+            <button class="icon-btn" data-edit-id="${entry.id}" title="Bearbeiten">✏️</button>
+            <button class="icon-btn delete" data-delete-id="${entry.id}" title="Löschen">🗑️</button>
+          </td>
+        `;
+        landingTableBody.appendChild(tr);
+      });
+    }
+
+    newEntryBtn.addEventListener('click', () => openModal());
+    closeModalBtn.addEventListener('click', closeModal);
+
+    entryKeywords.addEventListener('input', () => {
+      entryAi.value = generateAiSummary(entryKeywords.value, entryCategory.value);
+    });
+
+    entryCategory.addEventListener('change', () => {
+      entryAi.value = generateAiSummary(entryKeywords.value, entryCategory.value);
+    });
+
+    reanalyzeBtn.addEventListener('click', () => {
+      entryAi.value = generateAiSummary(entryKeywords.value, entryCategory.value);
+      entryComment.value = '';
+      modalInfo.textContent = 'Neu analysiert. Kommentar wurde zurückgesetzt.';
+    });
+
+    saveEntryBtn.addEventListener('click', () => {
+      const keywords = entryKeywords.value.trim();
+      const category = entryCategory.value;
+
+      if (!keywords || !category) {
+        modalInfo.textContent = 'Bitte Stichworte und Kategorie ausfüllen.';
+        return;
+      }
+
+      const categoryExists = entries.some((e) => e.category === category && e.id !== editingId);
+      if (categoryExists) {
+        modalInfo.textContent = 'Für diese Kategorie existiert bereits ein Eintrag.';
+        return;
+      }
+
+      if (editingId) {
+        const current = entries.find((e) => e.id === editingId);
+        current.keywords = keywords;
+        current.category = category;
+        current.ai = entryAi.value;
+        current.comment = entryComment.value.trim();
+        current.updatedAt = Date.now();
+      } else {
+        entries.push({
+          id: crypto.randomUUID(),
+          selected: false,
+          keywords,
+          category,
+          ai: entryAi.value,
+          comment: entryComment.value.trim(),
+          updatedAt: Date.now()
+        });
+      }
+
+      renderTable();
+      closeModal();
+    });
+
+    landingTableBody.addEventListener('click', (e) => {
+      const editId = e.target.getAttribute('data-edit-id');
+      const deleteId = e.target.getAttribute('data-delete-id');
+
+      if (editId) {
+        const entry = entries.find((x) => x.id === editId);
+        if (entry) openModal(entry);
+      }
+
+      if (deleteId) {
+        const index = entries.findIndex((x) => x.id === deleteId);
+        if (index > -1) {
+          entries.splice(index, 1);
+          renderTable();
+        }
+      }
+    });
+
+    landingTableBody.addEventListener('change', (e) => {
+      const selectId = e.target.getAttribute('data-select-id');
+      if (!selectId) return;
+      const entry = entries.find((x) => x.id === selectId);
+      if (entry) entry.selected = e.target.checked;
     });
   </script>
 </body>
