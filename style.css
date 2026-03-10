@@ -87,22 +87,26 @@ body {
   margin-bottom: 26px;
 }
 
+.group-section {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.group-section:first-of-type {
+  margin-top: 0;
+}
+
+.group-section h2 {
+  font-size: 1rem;
+  margin: 0 0 14px;
+  color: #344054;
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-}
-
-.section-split {
-  margin-top: 28px;
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
-}
-
-.section-split h2 {
-  font-size: 1rem;
-  margin: 0 0 14px;
-  color: #344054;
 }
 
 .card {
@@ -114,6 +118,7 @@ body {
   display: grid;
   gap: 12px;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  cursor: pointer;
 }
 
 .card:hover {
@@ -144,6 +149,7 @@ body {
   align-items: center;
   justify-content: center;
   color: #475467;
+  pointer-events: none;
 }
 
 .edit-icon svg {
@@ -249,6 +255,148 @@ body {
 .chat-input button svg {
   width: 18px;
   height: 18px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.38);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 40;
+}
+
+.hidden {
+  display: none;
+}
+
+.edit-modal {
+  background: #fff;
+  width: min(640px, 100%);
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.2);
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-head h3 {
+  margin: 0;
+}
+
+.form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.form-field label {
+  font-size: 0.88rem;
+  color: #344054;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid #d5dce9;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.attachment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-image-btn,
+.primary-btn,
+.ghost-btn,
+.remove-btn {
+  border-radius: 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+#imageInput {
+  display: none;
+}
+
+.add-image-btn {
+  border: 1px solid #d2ddf2;
+  color: #1f3d73;
+  background: #edf3ff;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+}
+
+.attachment-list {
+  display: grid;
+  gap: 10px;
+}
+
+.attachment-item {
+  border: 1px solid #e3e9f5;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.attachment-item img {
+  width: 62px;
+  height: 62px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #edf0f6;
+}
+
+.attachment-name {
+  flex: 1;
+  color: #475467;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-btn {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #b42318;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.primary-btn {
+  border: 1px solid #1f3d73;
+  background: #1f3d73;
+  color: #fff;
+  padding: 9px 14px;
+}
+
+.ghost-btn {
+  border: 1px solid #d5dce9;
+  background: #fff;
+  color: #344054;
+  padding: 9px 14px;
 }
 
 @media (max-width: 1200px) {
