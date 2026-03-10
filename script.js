@@ -1,130 +1,53 @@
-const records = [
-  {
-    id: 'rec-001',
-    type: 'unternehmensprofil',
-    group: 'ads',
-    title: 'Unternehmensprofil',
-    value: 'Wir sind ein innovatives Unternehmen im Bereich Marketing und Employer Branding.',
-    attachments: [],
-    updatedAt: 'Heute, 14:10'
-  },
-  {
-    id: 'rec-002',
-    type: 'stellenprofil',
-    group: 'ads',
-    title: 'Stellenprofil',
-    value: 'Marketing Manager, 80–100 %, Standort Zürich, Start ab sofort.',
-    attachments: [],
-    updatedAt: 'Heute, 14:12'
-  },
-  {
-    id: 'rec-003',
-    type: 'benefits',
-    group: 'ads',
-    title: 'Benefits',
-    value: '5 Wochen Ferien, Homeoffice, Weiterbildungsbudget und moderne Tools.',
-    attachments: [],
-    updatedAt: 'Heute, 14:20'
-  },
-  {
-    id: 'rec-004',
-    type: 'referenz',
-    group: 'ads',
-    title: 'Referenz – Firma Müller',
-    value: '„Tolle Zusammenarbeit und spürbar bessere Bewerberqualität innerhalb weniger Wochen.“',
-    attachments: ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80'],
-    updatedAt: 'Heute, 14:25'
-  },
-  {
-    id: 'rec-005',
-    type: 'unternehmensprofil',
-    group: 'landingpage',
-    title: 'Über uns für Landingpage',
-    value: 'Wir begleiten Unternehmen in der digitalen Personalgewinnung mit datenbasierten Kampagnen.',
-    attachments: [],
-    updatedAt: 'Heute, 14:27'
-  },
-  {
-    id: 'rec-006',
-    type: 'aufgaben',
-    group: 'landingpage',
-    title: 'Aufgaben im Job',
-    value: 'Planung, Umsetzung und Optimierung von Paid-Social-Kampagnen.',
-    attachments: [],
-    updatedAt: 'Heute, 14:28'
-  },
-  {
-    id: 'rec-007',
-    type: 'bilder',
-    group: 'landingpage',
-    title: 'Team-Bilder',
-    value: 'Bildmaterial für den authentischen Einblick in den Alltag.',
-    attachments: ['https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80'],
-    updatedAt: 'Heute, 14:29'
-  },
-  {
-    id: 'rec-008',
-    type: 'mitarbeiterzitat',
-    group: 'landingpage',
-    title: 'Mitarbeiterzitat – Sarah Keller',
-    value: '„Ich schätze die Eigenverantwortung und das Vertrauen im Team.“',
-    attachments: ['https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80'],
-    updatedAt: 'Heute, 14:30'
-  },
-  {
-    id: 'rec-009',
-    type: 'qualifikationsfragen',
-    group: 'funnel',
-    title: 'Qualifikationsfragen',
-    value: 'Hast du Erfahrung mit Meta Ads und Conversion Tracking?',
-    attachments: [],
-    updatedAt: 'Heute, 14:33'
-  },
-  {
-    id: 'rec-010',
-    type: 'anforderungen',
-    group: 'funnel',
-    title: 'Anforderungen',
-    value: 'Mindestens 2 Jahre Erfahrung im Performance Marketing.',
-    attachments: [],
-    updatedAt: 'Heute, 14:35'
-  },
-  {
-    id: 'rec-011',
-    type: 'bewerber-vorselektion',
-    group: 'funnel',
-    title: 'Bewerber-Vorselektion',
-    value: 'Kurze Verfügbarkeits- und Gehaltsabfrage vor Terminbuchung.',
-    attachments: [],
-    updatedAt: 'Heute, 14:37'
-  },
-  {
-    id: 'rec-012',
-    type: 'hinweise',
-    group: 'funnel',
-    title: 'Zusätzliche Hinweise',
-    value: 'Bitte Kontaktaufnahme innerhalb von 48h nach Formularabschluss.',
-    attachments: [],
-    updatedAt: 'Heute, 14:38'
-  }
+const SINGLE_CATEGORIES = [
+  'Stellenprofil',
+  'Unternehmensprofil',
+  'Arbeitgeberprofil',
+  'Aufgabenprofil',
+  'Benefits',
+  'Arbeitsalltag',
+  'Präferenzen'
 ];
 
-const groupMap = {
-  ads: document.getElementById('adsCards'),
-  landingpage: document.getElementById('landingpageCards'),
-  funnel: document.getElementById('funnelCards')
-};
+const MULTI_CATEGORIES = ['Content', 'Mitarbeiterzitate', 'Referenzen'];
+const FIXED_CATEGORIES = [...SINGLE_CATEGORIES, 'Content', 'Mitarbeiterzitate'];
 
-const groupOrder = ['ads', 'landingpage', 'funnel'];
+const categoryTypeMap = Object.fromEntries([
+  ...SINGLE_CATEGORIES.map((name) => [name, 'single']),
+  ...MULTI_CATEGORIES.map((name) => [name, 'multi'])
+]);
 
+const records = [
+  { id: 'rec-001', category: 'Stellenprofil', title: 'Stellenprofil', description: '', value: 'Marketing Manager, 80–100 %, Standort Zürich, Start ab sofort.', attachments: [], updatedAt: 'Heute, 14:12' },
+  { id: 'rec-002', category: 'Unternehmensprofil', title: 'Unternehmensprofil', description: '', value: 'Wir sind ein innovatives Unternehmen im Bereich Marketing und Employer Branding.', attachments: [], updatedAt: 'Heute, 14:14' },
+  { id: 'rec-003', category: 'Arbeitgeberprofil', title: 'Arbeitgeberprofil', description: '', value: 'Flache Hierarchien, schnelle Entscheidungen und transparente Kommunikation.', attachments: [], updatedAt: 'Heute, 14:18' },
+  { id: 'rec-004', category: 'Aufgabenprofil', title: 'Aufgabenprofil', description: '', value: 'Planung, Umsetzung und Optimierung von Paid-Social-Kampagnen.', attachments: [], updatedAt: 'Heute, 14:20' },
+  { id: 'rec-005', category: 'Benefits', title: 'Benefits', description: '', value: '5 Wochen Ferien, Homeoffice, Weiterbildungsbudget und moderne Tools.', attachments: [], updatedAt: 'Heute, 14:21' },
+  { id: 'rec-006', category: 'Arbeitsalltag', title: 'Arbeitsalltag', description: '', value: 'Agile Team-Weeklys, kurze Feedbackzyklen und enger Austausch mit Sales.', attachments: [], updatedAt: 'Heute, 14:23' },
+  { id: 'rec-007', category: 'Präferenzen', title: 'Präferenzen', description: '', value: 'Erfahrung mit Meta Ads, Tracking und datengetriebener Optimierung.', attachments: [], updatedAt: 'Heute, 14:24' },
+  { id: 'rec-008', category: 'Content', title: 'Karriereseite Intro', description: 'Einführung für Bewerbende', value: 'Wir suchen Menschen, die Verantwortung übernehmen und Wachstum aktiv mitgestalten.', attachments: ['https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80'], updatedAt: 'Heute, 14:30' },
+  { id: 'rec-009', category: 'Content', title: 'LinkedIn Beitrag', description: 'Post für Reichweite', value: 'Wir wachsen! Bewirb dich jetzt als Marketing Manager (m/w/d) in Zürich.', attachments: [], updatedAt: 'Heute, 14:34' },
+  { id: 'rec-010', category: 'Mitarbeiterzitate', title: 'Zitat – Sarah Keller', description: 'Teamlead Marketing', value: '„Ich schätze die Eigenverantwortung und das Vertrauen im Team.“', attachments: ['https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80'], updatedAt: 'Heute, 14:36' },
+  { id: 'rec-011', category: 'Mitarbeiterzitate', title: 'Zitat – Daniel Meier', description: 'Performance Specialist', value: '„Hier kann ich Ideen direkt testen und sehe sofort den Impact.“', attachments: [], updatedAt: 'Heute, 14:38' },
+  { id: 'rec-012', category: 'Referenzen', title: 'Referenz – Firma Müller', description: 'Kundenstimme', value: '„Spürbar bessere Bewerberqualität innerhalb weniger Wochen.“', attachments: ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80'], updatedAt: 'Heute, 14:40' }
+];
+
+const sectionsRoot = document.getElementById('categorySections');
 const editOverlay = document.getElementById('editOverlay');
+const titleField = document.getElementById('titleField');
+const descriptionField = document.getElementById('descriptionField');
+const attachmentsField = document.getElementById('attachmentsField');
 const editTitleInput = document.getElementById('editTitle');
+const editDescriptionInput = document.getElementById('editDescription');
 const editValueInput = document.getElementById('editValue');
 const imageInput = document.getElementById('imageInput');
 const attachmentList = document.getElementById('attachmentList');
 
 let activeRecordId = null;
 let draftAttachments = [];
+
+function getCategoryType(category) {
+  return categoryTypeMap[category] || 'single';
+}
 
 function getNowLabel() {
   const now = new Date();
@@ -142,6 +65,10 @@ function createCard(record) {
     ? `<img class="card-image" src="${record.attachments[0]}" alt="${record.title}" />`
     : '';
 
+  const description = record.description
+    ? `<p class="card-description">${record.description}</p>`
+    : '';
+
   card.innerHTML = `
     <div class="card-head">
       <h3 class="card-title">${record.title}</h3>
@@ -152,17 +79,46 @@ function createCard(record) {
         </svg>
       </span>
     </div>
+    ${description}
     ${image}
     <p class="card-content">${record.value}</p>
     <div class="card-meta">
-      <span>Type: ${record.type}</span>
-      <span>Geändert am: ${record.updatedAt}</span>
+      <span>${record.category}</span>
+      <span>${record.updatedAt}</span>
     </div>
   `;
 
   card.addEventListener('click', () => openEditor(record.id));
-
   return card;
+}
+
+function categoryOrder() {
+  const existingOptional = MULTI_CATEGORIES.filter(
+    (category) => !FIXED_CATEGORIES.includes(category) && records.some((entry) => entry.category === category)
+  );
+  return [...FIXED_CATEGORIES, ...existingOptional];
+}
+
+function renderSections() {
+  sectionsRoot.innerHTML = '';
+
+  categoryOrder().forEach((category) => {
+    const section = document.createElement('section');
+    section.className = 'group-section';
+
+    const heading = document.createElement('h2');
+    heading.textContent = category;
+
+    const grid = document.createElement('div');
+    grid.className = 'card-grid';
+
+    const entries = records.filter((entry) => entry.category === category);
+    entries.forEach((entry) => grid.appendChild(createCard(entry)));
+
+    section.appendChild(heading);
+    section.appendChild(grid);
+    sectionsRoot.appendChild(section);
+  });
 }
 
 function renderAttachments() {
@@ -195,14 +151,21 @@ function renderAttachments() {
 
 function openEditor(recordId) {
   const record = records.find((entry) => entry.id === recordId);
-  if (!record) {
-    return;
-  }
+  if (!record) return;
 
   activeRecordId = recordId;
+  const mode = getCategoryType(record.category);
+
+  titleField.classList.toggle('hidden', mode !== 'multi');
+  descriptionField.classList.toggle('hidden', mode !== 'multi');
+  attachmentsField.classList.toggle('hidden', mode !== 'multi');
+
   editTitleInput.value = record.title;
+  editTitleInput.readOnly = mode === 'single';
+  editDescriptionInput.value = record.description || '';
   editValueInput.value = record.value;
-  draftAttachments = [...record.attachments];
+
+  draftAttachments = mode === 'multi' ? [...record.attachments] : [];
   imageInput.value = '';
   renderAttachments();
   editOverlay.classList.remove('hidden');
@@ -221,22 +184,7 @@ function getUpdateScore(label) {
   return Number(hours) * 60 + Number(minutes);
 }
 
-function render() {
-  Object.values(groupMap).forEach((container) => {
-    container.innerHTML = '';
-  });
-
-  const sorted = [...records].sort(
-    (a, b) => groupOrder.indexOf(a.group) - groupOrder.indexOf(b.group)
-  );
-
-  sorted.forEach((entry) => {
-    const container = groupMap[entry.group];
-    if (container) {
-      container.appendChild(createCard(entry));
-    }
-  });
-
+function renderMeta() {
   const latestEntry = records.reduce((latest, current) => {
     if (!latest || getUpdateScore(current.updatedAt) > getUpdateScore(latest.updatedAt)) {
       return current;
@@ -246,6 +194,11 @@ function render() {
 
   document.getElementById('lastUpdated').textContent = `Zuletzt aktualisiert: ${latestEntry?.updatedAt || '–'}`;
   document.getElementById('contentCount').textContent = `Gesammelte Inhalte: ${records.length}`;
+}
+
+function render() {
+  renderSections();
+  renderMeta();
 }
 
 imageInput.addEventListener('change', (event) => {
@@ -266,9 +219,21 @@ document.getElementById('saveEditBtn').addEventListener('click', () => {
     return;
   }
 
-  record.title = editTitleInput.value.trim();
+  const mode = getCategoryType(record.category);
+
+  if (mode === 'multi') {
+    record.title = editTitleInput.value.trim() || record.title;
+    record.description = editDescriptionInput.value.trim();
+    record.attachments = [...draftAttachments];
+  }
+
+  if (mode === 'single') {
+    record.title = record.category;
+    record.description = '';
+    record.attachments = [];
+  }
+
   record.value = editValueInput.value;
-  record.attachments = [...draftAttachments];
   record.updatedAt = getNowLabel();
 
   closeEditor();

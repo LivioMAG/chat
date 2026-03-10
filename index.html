@@ -16,54 +16,29 @@
     <div class="layout">
       <aside class="sidebar">
         <div class="logo">RecruitAI</div>
-        <nav class="nav">
-          <a class="nav-item active" href="#">Content</a>
-          <a class="nav-item" href="#">Seite 2</a>
-          <a class="nav-item" href="#">Seite 3</a>
-        </nav>
+        <p class="sidebar-note">Lokale Mockdaten · Keine Supabase-Integration</p>
       </aside>
 
       <main class="main-content">
         <header class="page-header">
-          <h1>Recruiting Kampagne – Marketing Manager</h1>
+          <h1>Recruiting Kampagne – Kategorien</h1>
           <div class="meta-row">
             <span id="lastUpdated">Zuletzt aktualisiert: –</span>
             <span id="contentCount">Gesammelte Inhalte: 0</span>
           </div>
         </header>
 
-        <section class="group-section">
-          <h2>Ads</h2>
-          <div class="card-grid" id="adsCards"></div>
-        </section>
-
-        <section class="group-section">
-          <h2>Landingpage</h2>
-          <div class="card-grid" id="landingpageCards"></div>
-        </section>
-
-        <section class="group-section">
-          <h2>Funnel / Qualifikation</h2>
-          <div class="card-grid" id="funnelCards"></div>
-        </section>
+        <div id="categorySections"></div>
       </main>
 
       <aside class="chat-panel">
-        <h2>KI-Chat</h2>
-        <div class="chat-messages">
-          <div class="msg ai">Hallo 👋 Ich sammle alle Informationen für die Kampagnenseite.</div>
-          <div class="msg user">Bitte ergänze die wichtigsten Benefits.</div>
-          <div class="msg ai">Erfasst. Möchtest du zusätzlich Referenzen und Mitarbeiterzitate hinzufügen?</div>
-          <div class="msg user">Ja, bitte mit Bildmaterial.</div>
+        <h2>Hinweise</h2>
+        <div class="chat-messages notes-list">
+          <div class="msg ai">Single-Kategorien: Titel fix, kein Bild, nur Text editierbar.</div>
+          <div class="msg ai">Multi-Kategorien: Titel, Beschreibung, Text und Bild editierbar.</div>
+          <div class="msg ai">Karten werden je Kategorie als Section angezeigt.</div>
+          <div class="msg ai">Layout: 2 Karten nebeneinander, schlicht und modern.</div>
         </div>
-        <form class="chat-input" onsubmit="return false;">
-          <input type="text" placeholder="Nachricht eingeben ..." />
-          <button type="submit" aria-label="Senden">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 20L20 12L4 4V10L15 12L4 14V20Z" fill="currentColor" />
-            </svg>
-          </button>
-        </form>
       </aside>
     </div>
 
@@ -74,9 +49,14 @@
           <button class="ghost-btn" id="closeModalBtn" type="button">✕</button>
         </div>
 
-        <div class="form-field">
+        <div class="form-field" id="titleField">
           <label for="editTitle">Titel</label>
           <input id="editTitle" type="text" />
+        </div>
+
+        <div class="form-field hidden" id="descriptionField">
+          <label for="editDescription">Kurzbeschreibung</label>
+          <input id="editDescription" type="text" />
         </div>
 
         <div class="form-field">
@@ -84,7 +64,7 @@
           <textarea id="editValue" rows="5"></textarea>
         </div>
 
-        <div class="form-field">
+        <div class="form-field hidden" id="attachmentsField">
           <div class="attachment-header">
             <label>Anhänge</label>
             <label class="add-image-btn" for="imageInput">Bild hinzufügen</label>
