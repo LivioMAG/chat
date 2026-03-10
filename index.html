@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recruiting Plattform Workspace</title>
+  <title>Recruiting Content Workspace</title>
   <style>
     :root {
       --bg: #f4f6fb;
       --surface: #ffffff;
-      --surface-2: #f9fafb;
-      --line: #e4e7ec;
-      --text: #101828;
+      --surface-2: #f8f9fd;
+      --line: #e5e7ee;
+      --text: #111827;
       --muted: #667085;
-      --primary: #6d5efc;
-      --primary-soft: #f2f0ff;
-      --danger: #ef4444;
-      --success: #16a34a;
-      --shadow: 0 8px 32px rgba(16, 24, 40, 0.08);
+      --primary: #6558f5;
+      --primary-soft: #efedff;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --shadow: 0 12px 32px rgba(17, 24, 39, 0.08);
       --radius: 16px;
     }
 
@@ -24,786 +24,703 @@
 
     body {
       margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at top right, #eef2ff 0%, var(--bg) 35%);
-      min-height: 100vh;
+      background: radial-gradient(circle at top right, #eef1ff 0%, var(--bg) 35%);
     }
 
-    .app-shell {
+    .app {
       display: grid;
-      grid-template-columns: 260px 1fr;
+      grid-template-columns: 260px minmax(0, 1fr) 340px;
       min-height: 100vh;
     }
 
-    .sidebar {
-      border-right: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.84);
-      backdrop-filter: blur(8px);
-      padding: 20px;
+    .sidebar,
+    .chat {
       position: sticky;
       top: 0;
       height: 100vh;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+    }
+
+    .chat {
+      border-right: none;
+      border-left: 1px solid var(--line);
     }
 
     .brand {
       font-weight: 700;
-      font-size: 18px;
+      font-size: 19px;
       margin-bottom: 4px;
     }
 
-    .brand-sub {
+    .sub {
       color: var(--muted);
       font-size: 13px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
-    .nav-btn {
+    .nav button {
+      display: block;
       width: 100%;
       text-align: left;
       border: 1px solid transparent;
       border-radius: 12px;
+      padding: 11px 12px;
       background: transparent;
-      padding: 12px 14px;
-      font-size: 14px;
       margin-bottom: 8px;
+      cursor: pointer;
       color: #344054;
-      cursor: pointer;
     }
 
-    .nav-btn:hover { background: #f2f4f7; }
-
-    .nav-btn.active {
+    .nav button.active {
       background: var(--primary-soft);
-      border-color: #d8d2ff;
-      color: #382d9c;
+      border-color: #d8d4ff;
+      color: #352b9f;
       font-weight: 600;
     }
 
-    .main {
-      padding: 20px;
+    .workspace {
+      padding: 24px;
       display: grid;
-      grid-template-rows: auto 1fr;
       gap: 16px;
+      align-content: start;
     }
 
-    .topbar {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(6px);
-      box-shadow: var(--shadow);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .topbar h1 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .status {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .page {
-      display: none;
-      border: 1px solid var(--line);
-      border-radius: 20px;
+    .campaign-head {
       background: var(--surface);
+      border: 1px solid var(--line);
       box-shadow: var(--shadow);
+      border-radius: 22px;
       padding: 20px;
-      overflow: auto;
+      display: grid;
+      gap: 14px;
     }
 
-    .page.active { display: block; }
-
-    .page-title {
+    .campaign-title {
       margin: 0;
-      font-size: 22px;
+      font-size: 28px;
+      letter-spacing: -0.02em;
     }
 
-    .page-description {
-      margin: 8px 0 18px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .card {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface-2);
-      padding: 14px;
-    }
-
-    .chat-wrap {
-      display: grid;
-      grid-template-rows: 1fr auto;
-      min-height: 62vh;
-      gap: 12px;
-    }
-
-    .chat-messages {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 14px;
-      background: #fff;
+    .head-meta {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow: auto;
-    }
-
-    .bubble {
-      max-width: 76%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 14px;
-      line-height: 1.35;
-    }
-
-    .bubble.bot {
-      background: #f2f4f7;
-      align-self: flex-start;
-    }
-
-    .bubble.user {
-      background: var(--primary-soft);
-      align-self: flex-end;
-    }
-
-    .chat-input-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
+      flex-wrap: wrap;
       gap: 10px;
     }
-
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      color: #111827;
-      background: #fff;
-    }
-
-    textarea { min-height: 110px; resize: vertical; }
-
-    .btn {
-      border: 1px solid transparent;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-secondary { background: #fff; border-color: var(--line); color: #344054; }
-
-    .landing-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-    }
-
-    th, td {
-      border-bottom: 1px solid var(--line);
-      padding: 10px;
-      font-size: 14px;
-      text-align: left;
-    }
-
-    th { background: #f8f9fc; color: #475467; }
-    tr:last-child td { border-bottom: 0; }
-
-    .icon-btn {
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 10px;
-      padding: 6px 8px;
-      cursor: pointer;
-      margin-right: 5px;
-    }
-
-    .icon-btn.delete { color: var(--danger); }
 
     .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
       border-radius: 999px;
-      background: #eef4ff;
-      color: #1e3a8a;
+      border: 1px solid #dbe2f0;
+      background: #f8faff;
+      color: #334155;
+      padding: 5px 10px;
       font-size: 12px;
       font-weight: 600;
     }
 
-    .muted { color: var(--muted); }
+    .progress {
+      background: #eceffc;
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
 
-    .placeholder-grid {
+    .progress > span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #6558f5, #8f86ff);
+      border-radius: 999px;
+    }
+
+    .hint {
+      margin: 0;
+      color: #4338ca;
+      background: #eef2ff;
+      border: 1px solid #d9defd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .section-toggle {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .section-toggle small {
+      color: var(--muted);
+      font-weight: 500;
+      margin-left: 8px;
+    }
+
+    .section-body {
+      border-top: 1px solid var(--line);
+      padding: 16px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(16, 24, 40, 0.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 10;
-    }
+    .section.collapsed .section-body { display: none; }
 
-    .modal.open { display: flex; }
-
-    .modal-card {
-      width: min(860px, 100%);
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      padding: 18px;
-    }
-
-    .modal-grid {
+    .cards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+      gap: 10px;
     }
 
-    .modal-grid.single-column { grid-template-columns: 1fr; }
-
-    .field.hidden { display: none; }
-
-    .list-card {
+    .card {
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-      padding: 10px;
+      border-radius: 14px;
+      background: var(--surface-2);
+      padding: 14px;
       display: grid;
       gap: 8px;
-      max-height: 240px;
-      overflow: auto;
+      cursor: pointer;
     }
 
-    .image-item {
+    .card:hover { border-color: #b7c2ff; }
+
+    .card-title-row {
       display: flex;
       justify-content: space-between;
       gap: 8px;
       align-items: center;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 8px;
     }
 
-    .image-item label {
+    .card h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .status {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .status.active { background: #dcfce7; color: #166534; }
+    .status.inactive { background: #f1f5f9; color: #475569; }
+    .status.draft { background: #fef3c7; color: #92400e; }
+
+    .card p {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .media {
+      border-radius: 12px;
+      background: #e5e7eb;
+      overflow: hidden;
+      min-height: 110px;
+      display: grid;
+      place-items: center;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .warn {
+      display: inline-flex;
+      gap: 6px;
+      align-items: flex-start;
+      color: var(--danger);
+      font-size: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      padding: 7px 9px;
+    }
+
+    .add-card,
+    .empty-state {
+      border: 1.5px dashed #c8d0e5;
+      border-radius: 14px;
+      background: #fafbff;
+      padding: 16px;
+      color: #475467;
+      font-size: 14px;
+    }
+
+    .add-card {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      margin: 0;
+      cursor: pointer;
+      font-weight: 600;
+      color: #4338ca;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #1f2937;
+    }
+
+    .chat h3 {
+      margin: 0 0 10px;
+    }
+
+    .chat-placeholder {
+      border: 1px dashed #c6ccdd;
+      border-radius: 14px;
+      padding: 14px;
+      background: #f8faff;
+      color: #475467;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-stack {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .bubble {
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      max-width: 90%;
+    }
+
+    .bubble.bot { background: #eef2ff; color: #3730a3; }
+    .bubble.user { background: #f3f4f6; color: #374151; justify-self: end; }
+
+    .panel-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.45);
+      display: none;
+    }
+
+    .panel-backdrop.open { display: block; }
+
+    .panel {
+      position: fixed;
+      top: 0;
+      right: -460px;
+      width: 460px;
+      max-width: 100%;
+      height: 100vh;
+      background: #fff;
+      border-left: 1px solid var(--line);
+      box-shadow: -18px 0 40px rgba(15, 23, 42, 0.2);
+      padding: 20px;
+      transition: right 0.28s ease;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 14px;
+      z-index: 3;
+    }
+
+    .panel.open { right: 0; }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      font-size: 13px;
       color: #344054;
-      font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
     }
 
-    .field { display: grid; gap: 6px; margin-bottom: 10px; }
-    .field label { font-size: 13px; color: var(--muted); font-weight: 600; }
-
-    .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-
-    .info {
-      font-size: 13px;
-      margin-top: 8px;
-      color: var(--success);
-      min-height: 18px;
+    .panel-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: end;
     }
 
-    @media (max-width: 980px) {
-      .app-shell { grid-template-columns: 1fr; }
-      .sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-      .modal-grid, .placeholder-grid { grid-template-columns: 1fr; }
+    button {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      border-color: #d0d6e3;
+      color: #344054;
+    }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 220px 1fr;
+      }
+      .chat { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app">
     <aside class="sidebar">
-      <div class="brand">Recruiting OS</div>
-      <div class="brand-sub">Datensammelstelle</div>
-      <nav>
-        <button class="nav-btn active" data-page="forum">💬 Forum</button>
-        <button class="nav-btn" data-page="landing">📄 Funnel</button>
-        <button class="nav-btn" data-page="funnel">🧭 Landingpage</button>
-        <button class="nav-btn" data-page="ad">📣 Werbeanzeige</button>
+      <div class="brand">TalentFlow</div>
+      <div class="sub">Recruiting Campaign Builder</div>
+      <nav class="nav">
+        <button class="active">Content Workspace</button>
+        <button>Kandidatenfunnel</button>
+        <button>Ausspielung</button>
+        <button>Analytics</button>
       </nav>
     </aside>
 
-    <main class="main">
-      <header class="topbar">
-        <h1>Recruiting Plattform Workspace</h1>
-        <div class="status">App-Bar Platzhalter · Backend: Supabase (später)</div>
-      </header>
-
-      <section id="forum" class="page active">
-        <h2 class="page-title">Forum (Chatbot)</h2>
-        <p class="page-description">Hier wird der aktuelle Stand der Inhalte laufend kommuniziert.</p>
-        <div class="chat-wrap">
-          <div id="chatMessages" class="chat-messages">
-            <div class="bubble bot">Willkommen! Ich informiere dich laufend, was aktuell up-to-date ist.</div>
-            <div class="bubble bot">Hinweis: Änderungen in der Landingpage können jederzeit bearbeitet werden.</div>
-          </div>
-          <div class="chat-input-row">
-            <input id="chatInput" type="text" placeholder="Nachricht eingeben ..." />
-            <button id="sendChat" class="btn btn-primary">Senden</button>
-          </div>
+    <main class="workspace">
+      <section class="campaign-head">
+        <h1 class="campaign-title" id="campaignTitle"></h1>
+        <div class="head-meta">
+          <span class="pill" id="progressLabel"></span>
+          <span class="pill" id="requiredLabel"></span>
         </div>
+        <div class="progress"><span id="progressBar"></span></div>
+        <p class="hint" id="aiHint"></p>
       </section>
 
-      <section id="landing" class="page">
-        <h2 class="page-title">Funnel</h2>
-        <p class="page-description">Mehrere Einträge pro Kategorie erlaubt. Die KI-Analyse startet erst beim Speichern.</p>
-
-        <div class="landing-head">
-          <span class="muted">Einträge für Funnel-Inhalte</span>
-          <button id="newEntryBtn" class="btn btn-primary">+ Neuer Eintrag</button>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th style="width:70px">Auswahl</th>
-              <th style="width:170px">Zuletzt geändert</th>
-              <th>Kategorie</th>
-              <th style="width:150px">Aktionen</th>
-            </tr>
-          </thead>
-          <tbody id="landingTableBody">
-            <tr><td colspan="4" class="muted">Noch keine Einträge vorhanden.</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section id="funnel" class="page">
-        <h2 class="page-title">Landingpage</h2>
-        <p class="page-description">Platzhalter für die nächste Ausbaustufe.</p>
-        <div class="placeholder-grid">
-          <div class="card">Funnel-Logik und Schritte folgen im nächsten Schritt.</div>
-          <div class="card">Später mit Landingpage & Chat-Ablauf verknüpft.</div>
-        </div>
-      </section>
-
-      <section id="ad" class="page">
-        <h2 class="page-title">Werbeanzeige</h2>
-        <p class="page-description">Platzhalter für die nächste Ausbaustufe.</p>
-        <div class="placeholder-grid">
-          <div class="card">Anzeigen-Varianten / Creatives kommen später.</div>
-          <div class="card">Später an Kampagnensteuerung anbinden.</div>
-        </div>
-      </section>
+      <div id="sectionsRoot"></div>
     </main>
+
+    <aside class="chat">
+      <h3>AI Recruiting Chat</h3>
+      <div class="chat-placeholder">
+        Dieser Bereich ist ein UI-Platzhalter für die spätere n8n-Chat-Integration.
+        Hier erscheinen künftig Prompt-Verlauf, Antwortkarten und vorgeschlagene Content-Blöcke.
+      </div>
+      <div class="chat-stack">
+        <div class="bubble bot">Ich kann später Inhalte für Benefits und Stellenprofil automatisch ergänzen.</div>
+        <div class="bubble user">Perfekt, bitte als nächstes Aufgabenpunkte optimieren.</div>
+      </div>
+    </aside>
   </div>
 
-  <div id="entryModal" class="modal" aria-hidden="true">
-    <div class="modal-card">
-      <h3 id="modalTitle" style="margin:0 0 12px">Neuen Eintrag erstellen</h3>
-      <div id="modalGrid" class="modal-grid single-column">
-        <div>
-          <div class="field">
-            <label for="entryKeywords">Stichwortartige Beschreibung (editierbar)</label>
-            <textarea id="entryKeywords" style="min-height:240px" placeholder="z. B. Familienbetrieb, 80%, Start ab sofort, Weiterbildung"></textarea>
-          </div>
-
-          <div class="field">
-            <label for="entryCategory">Kategorie</label>
-            <select id="entryCategory">
-              <option value="">Bitte wählen ...</option>
-              <option>Stammdaten</option>
-              <option>Stellenprofile</option>
-              <option>Unternehmensprofil</option>
-              <option>Aufgaben</option>
-              <option>Benefits</option>
-              <option>Arbeitgeberprofil</option>
-              <option>Arbeitsalltag</option>
-              <option>Referenzen</option>
-              <option>Mitarbeiterzitate</option>
-              <option>Sonstiger Content</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="entryAi">KI-Zusammenfassung (nicht editierbar)</label>
-            <textarea id="entryAi" readonly>Wird gleich analysiert.</textarea>
-          </div>
-
-          <div id="singleImageField" class="field hidden">
-            <label for="entryImage">Bild (nur Referenzen & Mitarbeiterzitate)</label>
-            <input id="entryImage" type="file" accept="image/*" />
-          </div>
-
-          <div id="contentImageField" class="field hidden">
-            <label for="entryContentImages">Sonstiger Content – bis zu 10 Bilder</label>
-            <input id="entryContentImages" type="file" accept="image/*" multiple />
-            <div id="contentImageList" class="list-card muted">Noch keine Bilder ausgewählt.</div>
-          </div>
-        </div>
+  <div class="panel-backdrop" id="panelBackdrop"></div>
+  <aside class="panel" id="detailPanel">
+    <header>
+      <h3 style="margin: 0">Card bearbeiten</h3>
+      <p style="margin: 6px 0 0; color: #667085; font-size: 13px">Titel, Text, Medien und Status anpassen.</p>
+    </header>
+    <div>
+      <div class="field">
+        <label for="editTitle">Titel</label>
+        <input id="editTitle" type="text" />
       </div>
-
-      <div id="modalInfo" class="info"></div>
-
-      <div class="row">
-        <button id="closeModalBtn" class="btn btn-secondary" type="button">Abbrechen</button>
-        <button id="saveEntryBtn" class="btn btn-primary" type="button">Speichern</button>
+      <div class="field">
+        <label for="editBody">Fliesstext</label>
+        <textarea id="editBody"></textarea>
+      </div>
+      <div class="field">
+        <label for="editMedia">Medien-URL (optional)</label>
+        <input id="editMedia" type="text" placeholder="https://..." />
+      </div>
+      <div class="field">
+        <label for="editStatus">Status</label>
+        <select id="editStatus">
+          <option value="active">active</option>
+          <option value="inactive">inactive</option>
+          <option value="draft">draft</option>
+        </select>
       </div>
     </div>
-  </div>
+    <div class="panel-actions">
+      <button class="btn btn-secondary" id="cancelEdit">Abbrechen</button>
+      <button class="btn btn-primary" id="saveEdit">Speichern</button>
+    </div>
+  </aside>
 
   <script>
-    const navButtons = document.querySelectorAll('.nav-btn');
-    const pages = document.querySelectorAll('.page');
+    const data = {
+      campaign: {
+        title: "Q2 Recruiting Kampagne · Senior Frontend Developer",
+        progress: 68,
+        requiredDone: 3,
+        requiredTotal: 4,
+        aiHint: "KI-Hinweis: Das Stellenprofil wirkt bereits stark. Ergänze noch Verfügbarkeit und Region, um die Pflichtbereiche vollständig abzuschließen."
+      },
+      sections: [
+        {
+          id: "company",
+          title: "Unternehmensprofil",
+          type: "single",
+          required: true,
+          cards: [
+            {
+              id: "c1",
+              title: "Wer wir sind",
+              text: "Wir entwickeln eine SaaS-Plattform für datengetriebenes Recruiting mit Fokus auf Candidate Experience.",
+              status: "active",
+              updatedAt: "Heute, 09:42",
+              mediaType: "image",
+              mediaUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&q=60",
+              missingFields: []
+            }
+          ]
+        },
+        {
+          id: "job",
+          title: "Stellenprofil",
+          type: "single",
+          required: true,
+          cards: [
+            {
+              id: "c2",
+              title: "Senior Frontend Developer (m/w/d)",
+              text: "Du verantwortest die Weiterentwicklung unseres Design Systems und moderner React-Workflows im Produktteam.",
+              status: "active",
+              updatedAt: "Gestern, 17:30",
+              mediaType: null,
+              mediaUrl: "",
+              missingFields: []
+            }
+          ]
+        },
+        {
+          id: "tasks",
+          title: "Aufgabenbeschreibung",
+          type: "multi",
+          required: true,
+          cards: [
+            {
+              id: "c3",
+              title: "Feature Ownership",
+              text: "Du lieferst End-to-End Features in enger Abstimmung mit Product und UX.",
+              status: "draft",
+              updatedAt: "Heute, 08:11",
+              mediaType: null,
+              mediaUrl: "",
+              missingFields: []
+            },
+            {
+              id: "c4",
+              title: "Code Quality",
+              text: "Du etablierst Best Practices in Testing, Accessibility und Performance.",
+              status: "active",
+              updatedAt: "Heute, 08:25",
+              mediaType: "video",
+              mediaUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+              missingFields: []
+            }
+          ]
+        },
+        {
+          id: "conditions",
+          title: "Rahmeninformationen / Verfügbarkeit / Region",
+          type: "single",
+          required: true,
+          cards: [
+            {
+              id: "c5",
+              title: "Eckdaten",
+              text: "Vollzeit, hybrid, Start nach Absprache.",
+              status: "inactive",
+              updatedAt: "Vor 3 Tagen",
+              mediaType: null,
+              mediaUrl: "",
+              missingFields: ["Verfügbarkeit", "Region"]
+            }
+          ]
+        },
+        { id: "benefits", title: "Benefits", type: "multi", required: false, cards: [] },
+        { id: "references", title: "Referenzen", type: "multi", required: false, cards: [] },
+        {
+          id: "quotes",
+          title: "Mitarbeiterzitate",
+          type: "multi",
+          required: false,
+          cards: [
+            {
+              id: "c6",
+              title: "Teamstimme von Lara",
+              text: "Wir arbeiten fokussiert, aber mit viel Freiraum für Ideen und persönliches Wachstum.",
+              status: "active",
+              updatedAt: "Vor 5 Tagen",
+              mediaType: null,
+              mediaUrl: "",
+              missingFields: []
+            }
+          ]
+        },
+        { id: "images", title: "Bilder", type: "multi", required: false, cards: [] },
+        { id: "videos", title: "Videos / Creatives", type: "multi", required: false, cards: [] }
+      ]
+    };
 
-    navButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        navButtons.forEach((b) => b.classList.remove('active'));
-        pages.forEach((p) => p.classList.remove('active'));
-        button.classList.add('active');
-        document.getElementById(button.dataset.page).classList.add('active');
-      });
-    });
+    const sectionsRoot = document.getElementById("sectionsRoot");
+    const panel = document.getElementById("detailPanel");
+    const backdrop = document.getElementById("panelBackdrop");
+    let selected = null;
 
-    const chatInput = document.getElementById('chatInput');
-    const sendChat = document.getElementById('sendChat');
-    const chatMessages = document.getElementById('chatMessages');
-
-    function pushChat(message, role) {
-      const bubble = document.createElement('div');
-      bubble.className = `bubble ${role}`;
-      bubble.textContent = message;
-      chatMessages.appendChild(bubble);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+    function renderHeader() {
+      document.getElementById("campaignTitle").textContent = data.campaign.title;
+      document.getElementById("progressLabel").textContent = `Fortschritt: ${data.campaign.progress}%`;
+      document.getElementById("requiredLabel").textContent = `Pflichtbereiche vollständig: ${data.campaign.requiredDone}/${data.campaign.requiredTotal}`;
+      document.getElementById("progressBar").style.width = `${data.campaign.progress}%`;
+      document.getElementById("aiHint").textContent = data.campaign.aiHint;
     }
 
-    function botReply(userMessage) {
-      const short = userMessage.length > 80 ? `${userMessage.slice(0, 80)}...` : userMessage;
-      pushChat(`Update erhalten: "${short}". Ich halte den aktuellen Stand im Forum synchron.`, 'bot');
-    }
-
-    sendChat.addEventListener('click', () => {
-      const text = chatInput.value.trim();
-      if (!text) return;
-      pushChat(text, 'user');
-      chatInput.value = '';
-      setTimeout(() => botReply(text), 300);
-    });
-
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendChat.click();
-    });
-
-    const modal = document.getElementById('entryModal');
-    const modalGrid = document.getElementById('modalGrid');
-    const newEntryBtn = document.getElementById('newEntryBtn');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const saveEntryBtn = document.getElementById('saveEntryBtn');
-    const landingTableBody = document.getElementById('landingTableBody');
-    const entryKeywords = document.getElementById('entryKeywords');
-    const entryCategory = document.getElementById('entryCategory');
-    const entryAi = document.getElementById('entryAi');
-    const entryImage = document.getElementById('entryImage');
-    const entryContentImages = document.getElementById('entryContentImages');
-    const contentImageList = document.getElementById('contentImageList');
-    const singleImageField = document.getElementById('singleImageField');
-    const contentImageField = document.getElementById('contentImageField');
-    const modalInfo = document.getElementById('modalInfo');
-    const modalTitle = document.getElementById('modalTitle');
-
-    const entries = [];
-    const imageStates = new Map();
-    let editingId = null;
-
-    function isImageCategory(category) {
-      return category === 'Referenzen' || category === 'Mitarbeiterzitate';
-    }
-
-    function isContentCategory(category) {
-      return category === 'Sonstiger Content';
-    }
-
-    function updateAiPlaceholder() {
-      if (entryKeywords.value.trim()) {
-        entryAi.value = 'Wird gleich analysiert.';
-      } else {
-        entryAi.value = 'Wird gleich analysiert.';
+    function mediaMarkup(card) {
+      if (!card.mediaUrl) return "";
+      if (card.mediaType === "video") {
+        return `<div class="media"><video controls style="width:100%;height:100%;object-fit:cover"><source src="${card.mediaUrl}" /></video></div>`;
       }
+      return `<div class="media"><img src="${card.mediaUrl}" alt="${card.title}" /></div>`;
     }
 
-    function applyCategoryLayout() {
-      const category = entryCategory.value;
-      const contentMode = isContentCategory(category);
+    function renderSections() {
+      sectionsRoot.innerHTML = data.sections.map((section, index) => {
+        const cardsHtml = section.cards.length
+          ? `<div class="cards">${section.cards.map(card => {
+              const warning = section.required && card.missingFields.length
+                ? `<div class="warn">⚠️ <span>Es fehlen noch: ${card.missingFields.join(", ")}</span></div>`
+                : "";
 
-      singleImageField.classList.toggle('hidden', !isImageCategory(category));
-      contentImageField.classList.toggle('hidden', !contentMode);
-      entryKeywords.disabled = contentMode;
-      entryKeywords.placeholder = contentMode
-        ? 'Bei Sonstiger Content werden nur Bilder verwendet.'
-        : 'z. B. Familienbetrieb, 80%, Start ab sofort, Weiterbildung';
-      if (contentMode) {
-        entryKeywords.value = '';
-      }
+              return `<article class="card" data-section-id="${section.id}" data-card-id="${card.id}">
+                <div class="card-title-row">
+                  <h4>${card.title}</h4>
+                  <span class="status ${card.status}">${card.status}</span>
+                </div>
+                <p>${card.text}</p>
+                ${mediaMarkup(card)}
+                <div class="meta"><span>Letztes Update: ${card.updatedAt}</span></div>
+                ${warning}
+              </article>`;
+            }).join("")}</div>`
+          : `<div class="empty-state"><strong>Noch kein Content</strong>Diese Section ist aktuell leer. Lege den ersten Inhalt als Card an und baue hier eine starke Story auf.</div>`;
 
-      modalGrid.classList.toggle('single-column', true);
-      updateAiPlaceholder();
-      renderContentImageList();
+        const addArea = section.type === "multi"
+          ? `<div class="add-card" data-add-section-id="${section.id}">＋ hinzufügen</div>`
+          : "";
+
+        return `<section class="section ${index > 1 ? "collapsed" : ""}" data-section="${section.id}">
+          <button class="section-toggle" data-toggle="${section.id}">
+            <span>${section.title}<small>${section.type} ${section.required ? "· Pflicht" : "· Optional"}</small></span>
+            <span>▾</span>
+          </button>
+          <div class="section-body">
+            ${cardsHtml}
+            ${addArea}
+          </div>
+        </section>`;
+      }).join("");
     }
 
-    function openModal(entry = null) {
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden', 'false');
-      modalInfo.textContent = '';
-      if (entry) {
-        editingId = entry.id;
-        modalTitle.textContent = 'Eintrag bearbeiten';
-        entryKeywords.value = entry.keywords || '';
-        entryCategory.value = entry.category;
-        entryAi.value = entry.ai;
-        entryImage.value = '';
-        entryContentImages.value = '';
-        imageStates.set(editingId, entry.contentImages || []);
-      } else {
-        editingId = null;
-        modalTitle.textContent = 'Neuen Eintrag erstellen';
-        entryKeywords.value = '';
-        entryCategory.value = '';
-        entryAi.value = 'Wird gleich analysiert.';
-        entryImage.value = '';
-        entryContentImages.value = '';
-        imageStates.set('new', []);
-      }
-      applyCategoryLayout();
+    function openPanel(sectionId, cardId) {
+      const section = data.sections.find(s => s.id === sectionId);
+      const card = section.cards.find(c => c.id === cardId);
+      if (!card) return;
+      selected = { sectionId, cardId };
+      document.getElementById("editTitle").value = card.title;
+      document.getElementById("editBody").value = card.text;
+      document.getElementById("editMedia").value = card.mediaUrl;
+      document.getElementById("editStatus").value = card.status;
+      panel.classList.add("open");
+      backdrop.classList.add("open");
     }
 
-    function closeModal() {
-      modal.classList.remove('open');
-      modal.setAttribute('aria-hidden', 'true');
+    function closePanel() {
+      panel.classList.remove("open");
+      backdrop.classList.remove("open");
+      selected = null;
     }
 
-    function formatDate(value) {
-      return new Date(value).toLocaleDateString('de-CH', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-      });
+    function saveEdit() {
+      if (!selected) return;
+      const section = data.sections.find(s => s.id === selected.sectionId);
+      const card = section.cards.find(c => c.id === selected.cardId);
+      card.title = document.getElementById("editTitle").value.trim() || card.title;
+      card.text = document.getElementById("editBody").value.trim();
+      card.mediaUrl = document.getElementById("editMedia").value.trim();
+      card.status = document.getElementById("editStatus").value;
+      card.mediaType = card.mediaUrl ? (card.mediaUrl.includes(".mp4") ? "video" : "image") : null;
+      card.updatedAt = "Gerade eben";
+      renderSections();
+      closePanel();
     }
 
-    function getCurrentImagesState() {
-      return imageStates.get(editingId || 'new') || [];
-    }
-
-    function setCurrentImagesState(images) {
-      imageStates.set(editingId || 'new', images);
-    }
-
-    function renderContentImageList() {
-      const images = getCurrentImagesState();
-      if (!images.length) {
-        contentImageList.innerHTML = 'Noch keine Bilder ausgewählt.';
-        contentImageList.classList.add('muted');
-        return;
-      }
-
-      contentImageList.classList.remove('muted');
-      contentImageList.innerHTML = '';
-      images.forEach((img) => {
-        const row = document.createElement('div');
-        row.className = 'image-item';
-        row.innerHTML = `
-          <span>${img.name}</span>
-          <label>
-            <input type="checkbox" data-header-image-id="${img.id}" ${img.featured ? 'checked' : ''} />
-            Wichtiges Header-Bild
-          </label>
-        `;
-        contentImageList.appendChild(row);
-      });
-    }
-
-    function generateAiSummary(text, category) {
-      const cat = category || 'Allgemein';
-      if (isContentCategory(cat)) {
-        return 'Bildanalyse für Sonstiger Content wird beim Speichern durchgeführt.';
-      }
-      if (!text.trim()) return 'Wird gleich analysiert.';
-      return `Kategorie: ${cat}
-
-KI-Interpretation:
-- Kernpunkte: ${text.trim()}
-- Strukturierter Vorschlag: Inhalte in Funnel-Sektionen ausspielen.`;
-    }
-
-    function renderTable() {
-      landingTableBody.innerHTML = '';
-      if (!entries.length) {
-        landingTableBody.innerHTML = '<tr><td colspan="4" class="muted">Noch keine Einträge vorhanden.</td></tr>';
-        return;
-      }
-
-      entries.forEach((entry) => {
-        const info = isContentCategory(entry.category)
-          ? `${entry.contentImages?.length || 0} Bild(er)`
-          : entry.category;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="checkbox" ${entry.selected ? 'checked' : ''} data-select-id="${entry.id}" /></td>
-          <td>${formatDate(entry.updatedAt)}</td>
-          <td><span class="pill">${info}</span></td>
-          <td>
-            <button class="icon-btn" data-edit-id="${entry.id}" title="Bearbeiten">✏️</button>
-            <button class="icon-btn delete" data-delete-id="${entry.id}" title="Löschen">🗑️</button>
-          </td>
-        `;
-        landingTableBody.appendChild(tr);
-      });
-    }
-
-    newEntryBtn.addEventListener('click', () => openModal());
-    closeModalBtn.addEventListener('click', closeModal);
-
-    entryKeywords.addEventListener('input', updateAiPlaceholder);
-
-    entryCategory.addEventListener('change', () => {
-      applyCategoryLayout();
-      modalInfo.textContent = '';
-    });
-
-    entryContentImages.addEventListener('change', () => {
-      const selected = Array.from(entryContentImages.files || []);
-      if (selected.length > 10) {
-        modalInfo.textContent = 'Bitte maximal 10 Bilder auswählen.';
-        setCurrentImagesState([]);
-        entryContentImages.value = '';
-        renderContentImageList();
-        return;
+    sectionsRoot.addEventListener("click", (e) => {
+      const toggle = e.target.closest("[data-toggle]");
+      if (toggle) {
+        const sectionEl = document.querySelector(`[data-section='${toggle.dataset.toggle}']`);
+        sectionEl.classList.toggle("collapsed");
       }
 
-      const mapped = selected.map((file) => ({
-        id: crypto.randomUUID(),
-        name: file.name,
-        featured: false
-      }));
-      setCurrentImagesState(mapped);
-      modalInfo.textContent = '';
-      renderContentImageList();
-    });
-
-    contentImageList.addEventListener('change', (e) => {
-      const imageId = e.target.getAttribute('data-header-image-id');
-      if (!imageId) return;
-      const images = getCurrentImagesState().map((img) => {
-        if (img.id === imageId) {
-          return { ...img, featured: e.target.checked };
-        }
-        return img;
-      });
-      setCurrentImagesState(images);
-    });
-
-    saveEntryBtn.addEventListener('click', () => {
-      const keywords = entryKeywords.value.trim();
-      const category = entryCategory.value;
-      const contentImages = getCurrentImagesState();
-      const requiresSingleImage = isImageCategory(category);
-      const singleImageName = entryImage.files?.[0]?.name || '';
-
-      if (!category) {
-        modalInfo.textContent = 'Bitte Kategorie auswählen.';
-        return;
-      }
-
-      if (!isContentCategory(category) && !keywords) {
-        modalInfo.textContent = 'Bitte Stichworte ausfüllen.';
-        return;
-      }
-
-      if (requiresSingleImage && !singleImageName && !editingId) {
-        modalInfo.textContent = 'Für diese Kategorie muss ein Bild hochgeladen werden.';
-        return;
-      }
-
-      if (isContentCategory(category) && !contentImages.length) {
-        modalInfo.textContent = 'Bitte mindestens ein Bild für Sonstiger Content hochladen.';
-        return;
-      }
-
-      const aiSummary = generateAiSummary(keywords, category);
-
-      if (editingId) {
-        const current = entries.find((e) => e.id === editingId);
-        current.keywords = keywords;
-        current.category = category;
-        current.ai = aiSummary;
-        current.singleImageName = singleImageName || current.singleImageName || '';
-        current.contentImages = contentImages;
-        current.updatedAt = Date.now();
-      } else {
-        entries.push({
-          id: crypto.randomUUID(),
-          selected: false,
-          keywords,
-          category,
-          ai: aiSummary,
-          singleImageName,
-          contentImages,
-          updatedAt: Date.now()
+      const add = e.target.closest("[data-add-section-id]");
+      if (add) {
+        const section = data.sections.find(s => s.id === add.dataset.addSectionId);
+        section.cards.push({
+          id: `new-${Date.now()}`,
+          title: "Neue Card",
+          text: "Beschreibe hier den Inhalt dieses Bereichs.",
+          status: "draft",
+          updatedAt: "Gerade eben",
+          mediaType: null,
+          mediaUrl: "",
+          missingFields: []
         });
+        renderSections();
       }
 
-      renderTable();
-      closeModal();
+      const card = e.target.closest(".card");
+      if (card) openPanel(card.dataset.sectionId, card.dataset.cardId);
     });
 
-    landingTableBody.addEventListener('click', (e) => {
-      const editId = e.target.getAttribute('data-edit-id');
-      const deleteId = e.target.getAttribute('data-delete-id');
+    document.getElementById("cancelEdit").addEventListener("click", closePanel);
+    document.getElementById("saveEdit").addEventListener("click", saveEdit);
+    backdrop.addEventListener("click", closePanel);
 
-      if (editId) {
-        const entry = entries.find((x) => x.id === editId);
-        if (entry) openModal(entry);
-      }
-
-      if (deleteId) {
-        const index = entries.findIndex((x) => x.id === deleteId);
-        if (index > -1) {
-          entries.splice(index, 1);
-          renderTable();
-        }
-      }
-    });
-
-    landingTableBody.addEventListener('change', (e) => {
-      const selectId = e.target.getAttribute('data-select-id');
-      if (!selectId) return;
-      const entry = entries.find((x) => x.id === selectId);
-      if (entry) entry.selected = e.target.checked;
-    });
+    renderHeader();
+    renderSections();
   </script>
 </body>
 </html>
