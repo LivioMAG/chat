@@ -32,16 +32,19 @@
           </div>
         </header>
 
-        <section class="card-grid" id="singleCards"></section>
-
-        <section class="section-split">
-          <h2>Referenzen</h2>
-          <div class="card-grid" id="referenceCards"></div>
+        <section class="group-section">
+          <h2>Ads</h2>
+          <div class="card-grid" id="adsCards"></div>
         </section>
 
-        <section class="section-split">
-          <h2>Mitarbeiterzitate</h2>
-          <div class="card-grid" id="quoteCards"></div>
+        <section class="group-section">
+          <h2>Landingpage</h2>
+          <div class="card-grid" id="landingpageCards"></div>
+        </section>
+
+        <section class="group-section">
+          <h2>Funnel / Qualifikation</h2>
+          <div class="card-grid" id="funnelCards"></div>
         </section>
       </main>
 
@@ -62,6 +65,39 @@
           </button>
         </form>
       </aside>
+    </div>
+
+    <div class="modal-overlay hidden" id="editOverlay">
+      <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editTitleHeading">
+        <div class="modal-head">
+          <h3 id="editTitleHeading">Karte bearbeiten</h3>
+          <button class="ghost-btn" id="closeModalBtn" type="button">✕</button>
+        </div>
+
+        <div class="form-field">
+          <label for="editTitle">Titel</label>
+          <input id="editTitle" type="text" />
+        </div>
+
+        <div class="form-field">
+          <label for="editValue">Text / Inhalt</label>
+          <textarea id="editValue" rows="5"></textarea>
+        </div>
+
+        <div class="form-field">
+          <div class="attachment-header">
+            <label>Anhänge</label>
+            <label class="add-image-btn" for="imageInput">Bild hinzufügen</label>
+            <input id="imageInput" type="file" accept="image/*" multiple />
+          </div>
+          <div class="attachment-list" id="attachmentList"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="ghost-btn" id="cancelEditBtn" type="button">Abbrechen</button>
+          <button class="primary-btn" id="saveEditBtn" type="button">Speichern</button>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
