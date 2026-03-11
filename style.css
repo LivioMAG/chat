@@ -214,6 +214,35 @@ th { color: #4c5975; font-weight: 600; }
   cursor: not-allowed;
 }
 
+
+.icon-label-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.approval-pill {
+  border: 1px solid #cfe0d8;
+  background: #f2fbf5;
+  color: #2f6a46;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.table-action-btn {
+  min-width: 34px;
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+}
+
 .status-pill {
   border-radius: 999px;
   padding: 2px 8px;
