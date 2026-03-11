@@ -223,6 +223,34 @@ th { color: #4c5975; font-weight: 600; }
   font-size: 0.77rem;
 }
 
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.table-action-btn {
+  border: 1px solid #ccd7f5;
+  background: #edf2ff;
+  color: #29459a;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+}
+
+.table-action-btn.danger {
+  border-color: #f4c5cd;
+  background: #fff1f3;
+  color: #a0364a;
+}
+
+.empty-cell {
+  color: var(--muted);
+  text-align: center;
+}
+
+
 .locked-panel { background: rgba(248, 250, 255, 0.8); color: #8b95ab; }
 .locked-content { min-height: 160px; display: grid; place-content: center; text-align: center; }
 .lock-icon { font-size: 1.5rem; margin: 0; }

@@ -6,7 +6,15 @@ const state = {
       text: 'Willkommen! Erzähl mir etwas über dein Unternehmen.'
     }
   ],
-  uploadMode: null
+  uploadMode: null,
+  inputDocuments: [
+    { id: 'in-1', name: 'Fragebogen.pdf', type: 'Formular', date: '12.03', status: 'OK' },
+    { id: 'in-2', name: 'Briefing.docx', type: 'Text', date: '12.03', status: 'OK' }
+  ],
+  outputDocuments: [
+    { id: 'out-1', name: 'Kampagnenanalyse.pdf', type: 'Report', date: '14.03' },
+    { id: 'out-2', name: 'Contentstrategie.pdf', type: 'Strategie', date: '14.03' }
+  ]
 };
 
 const navItems = document.querySelectorAll('.nav-item');
@@ -19,6 +27,8 @@ const uploadDocBtn = document.getElementById('uploadDocBtn');
 const uploadMediaBtn = document.getElementById('uploadMediaBtn');
 const statusBanner = document.getElementById('statusBanner');
 const headerActionBtn = document.getElementById('headerActionBtn');
+const inputDocsTableBody = document.getElementById('inputDocsTableBody');
+const outputDocsTableBody = document.getElementById('outputDocsTableBody');
 
 const uploadModal = document.getElementById('uploadModal');
 const uploadModalTitle = document.getElementById('uploadModalTitle');
@@ -34,6 +44,93 @@ const chatTabs = {
   content: document.querySelector('.chat-tab[data-tab="content"]'),
   campaign: document.querySelector('.chat-tab[data-tab="campaign"]')
 };
+
+
+function renderDocuments() {
+  inputDocsTableBody.innerHTML = '';
+  outputDocsTableBody.innerHTML = '';
+
+  state.inputDocuments.forEach((doc) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${doc.name}</td>
+      <td>${doc.type}</td>
+      <td>${doc.date}</td>
+      <td><span class="status-pill">${doc.status}</span></td>
+      <td>
+        <div class="table-actions">
+          <button class="table-action-btn" data-action="download" data-type="input" data-id="${doc.id}">Download</button>
+          <button class="table-action-btn danger" data-action="remove" data-type="input" data-id="${doc.id}">Entfernen</button>
+        </div>
+      </td>
+    `;
+    inputDocsTableBody.appendChild(row);
+  });
+
+  if (!state.inputDocuments.length) {
+    const empty = document.createElement('tr');
+    empty.innerHTML = '<td colspan="5" class="empty-cell">Keine Input-Dokumente vorhanden.</td>';
+    inputDocsTableBody.appendChild(empty);
+  }
+
+  state.outputDocuments.forEach((doc) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${doc.name}</td>
+      <td>${doc.type}</td>
+      <td>${doc.date}</td>
+      <td>
+        <div class="table-actions">
+          <button class="table-action-btn" data-action="download" data-type="output" data-id="${doc.id}">Download</button>
+          <button class="table-action-btn danger" data-action="remove" data-type="output" data-id="${doc.id}">Entfernen</button>
+        </div>
+      </td>
+    `;
+    outputDocsTableBody.appendChild(row);
+  });
+
+  if (!state.outputDocuments.length) {
+    const empty = document.createElement('tr');
+    empty.innerHTML = '<td colspan="4" class="empty-cell">Keine Dokumente von Ben vorhanden.</td>';
+    outputDocsTableBody.appendChild(empty);
+  }
+}
+
+function triggerDocumentDownload(doc) {
+  const blob = new Blob([`Demo-Download für ${doc.name}`], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = doc.name;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function handleDocumentAction(event) {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+
+  const { action, type, id } = button.dataset;
+  const listKey = type === 'input' ? 'inputDocuments' : 'outputDocuments';
+  const docs = state[listKey];
+  const doc = docs.find((entry) => entry.id === id);
+  if (!doc) return;
+
+  if (action === 'download') {
+    triggerDocumentDownload(doc);
+    state.messages.push({ role: 'agent', text: `${doc.name} wird heruntergeladen.` });
+  }
+
+  if (action === 'remove') {
+    state[listKey] = docs.filter((entry) => entry.id !== id);
+    state.messages.push({ role: 'agent', text: `${doc.name} wurde entfernt.` });
+    renderDocuments();
+  }
+
+  renderChat();
+}
 
 function showPage(pageKey) {
   const isWorkplace = pageKey === 'workplace';
@@ -166,6 +263,20 @@ confirmUploadBtn.addEventListener('click', () => {
     return;
   }
 
+  if (state.uploadMode === 'docs') {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    state.inputDocuments.unshift({
+      id: `in-${Date.now()}`,
+      name: `Neues_Dokument_${state.inputDocuments.length + 1}.pdf`,
+      type: 'Upload',
+      date: `${day}.${month}`,
+      status: 'Neu'
+    });
+    renderDocuments();
+  }
+
   const modeText = state.uploadMode === 'media' ? 'Bild/Video + Text' : 'Dokument';
   state.messages.push({ role: 'agent', text: `${modeText} erfolgreich hochgeladen (Dummy).` });
   renderChat();
@@ -182,6 +293,9 @@ navItems.forEach((item) => {
   item.addEventListener('click', () => showPage(item.dataset.page));
 });
 
+inputDocsTableBody.addEventListener('click', handleDocumentAction);
+outputDocsTableBody.addEventListener('click', handleDocumentAction);
+
 Object.values(chatTabs).forEach((tab) => {
   tab.addEventListener('click', () => {
     Object.values(chatTabs).forEach((entry) => entry.classList.remove('active'));
@@ -190,5 +304,6 @@ Object.values(chatTabs).forEach((tab) => {
 });
 
 updateWorkspaceHeader();
+renderDocuments();
 renderChat();
 showPage('workplace');
