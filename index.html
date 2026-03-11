@@ -19,7 +19,6 @@
           <div class="brand">WebApp</div>
           <nav class="sidebar-nav">
             <button class="nav-item active" data-page="workplace">Arbeitsplatz</button>
-            <button class="nav-item" data-page="settings">Einstellungen</button>
           </nav>
         </div>
 
@@ -40,10 +39,6 @@
           <header class="workspace-header">
             <h1>Arbeitsplatz</h1>
             <div class="header-action" id="headerActionArea">
-              <div class="lock-banner" id="statusBanner">🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.</div>
-              <button class="primary-btn hidden" id="publishCampaignBtn" title="Veröffentlichung starten" aria-label="Veröffentlichung starten">
-                Veröffentlichungen
-              </button>
               <button class="primary-btn icon-label-btn" id="headerQuestionnaireBtn" title="Fragebogen herunterladen" aria-label="Fragebogen herunterladen">
                 <span class="btn-icon" aria-hidden="true">📋</span>
                 <span>Fragebogen</span>
@@ -58,7 +53,7 @@
             <article class="panel input-docs">
               <div class="panel-head">
                 <h2>Input Dokumente</h2>
-                <button class="secondary-btn icon-only-btn" id="uploadDocBtn" title="Datei hochladen" aria-label="Datei hochladen" disabled>
+                <button class="secondary-btn icon-only-btn" id="uploadDocBtn" title="Datei hochladen" aria-label="Datei hochladen">
                   <span class="btn-icon" aria-hidden="true">⤴</span>
                 </button>
               </div>
@@ -96,7 +91,7 @@
             <article class="panel input-media">
               <div class="panel-head">
                 <h2>Input Bilder</h2>
-                <button class="secondary-btn icon-only-btn" id="uploadMediaBtn" title="Bild/Video + Text hochladen" aria-label="Bild/Video + Text hochladen" disabled>
+                <button class="secondary-btn icon-only-btn" id="uploadMediaBtn" title="Bild/Video + Text hochladen" aria-label="Bild/Video + Text hochladen">
                   <span class="btn-icon" aria-hidden="true">⤴</span>
                 </button>
               </div>
@@ -137,12 +132,6 @@
         </div>
 
         <aside class="chat-column">
-          <div class="chat-tabs">
-            <button class="chat-tab active" data-tab="config">Konfiguration</button>
-            <button class="chat-tab locked" data-tab="content" disabled>Inhalt</button>
-            <button class="chat-tab locked" data-tab="campaign" disabled>Kampagne</button>
-          </div>
-
           <div class="chat-stream" id="chatStream"></div>
 
           <div class="chat-input-row">
@@ -150,30 +139,6 @@
             <button id="sendMessageBtn">Senden</button>
           </div>
         </aside>
-      </section>
-
-      <section class="page settings-page" id="settingsPage">
-        <header>
-          <h1>Einstellungen</h1>
-        </header>
-        <div class="settings-grid">
-          <article class="setting-card">
-            <h2>Account</h2>
-            <p>E-Mail, Passwort und Login-Sicherheit verwalten.</p>
-          </article>
-          <article class="setting-card">
-            <h2>Profil</h2>
-            <p>Name, Rolle und Unternehmensdaten bearbeiten.</p>
-          </article>
-          <article class="setting-card">
-            <h2>Benachrichtigungen</h2>
-            <p>Hinweise zu Uploads, Freigaben und Kampagnenstatus.</p>
-          </article>
-          <article class="setting-card">
-            <h2>Reporting-Rhythmus</h2>
-            <p>Wöchentliches oder monatliches Reporting festlegen.</p>
-          </article>
-        </div>
       </section>
     </div>
 

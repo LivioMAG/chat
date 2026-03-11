@@ -1,9 +1,8 @@
 const state = {
-  stage: 'configuration',
   messages: [
     {
       role: 'agent',
-      text: 'Willkommen! Erzähl mir etwas über dein Unternehmen.'
+      text: 'Willkommen! Du kannst direkt alles nutzen: Chat, Fragebogen, Landingpage und Uploads.'
     }
   ],
   uploadMode: null,
@@ -23,18 +22,13 @@ const statusIconMap = {
   error: { icon: '❌', label: 'Status Fehler' }
 };
 
-const navItems = document.querySelectorAll('.nav-item');
-const workplacePage = document.getElementById('workplacePage');
-const settingsPage = document.getElementById('settingsPage');
 const chatStream = document.getElementById('chatStream');
 const chatInput = document.getElementById('chatInput');
 const sendMessageBtn = document.getElementById('sendMessageBtn');
 const uploadDocBtn = document.getElementById('uploadDocBtn');
 const uploadMediaBtn = document.getElementById('uploadMediaBtn');
-const statusBanner = document.getElementById('statusBanner');
 const headerQuestionnaireBtn = document.getElementById('headerQuestionnaireBtn');
 const headerLandingPageBtn = document.getElementById('headerLandingPageBtn');
-const publishCampaignBtn = document.getElementById('publishCampaignBtn');
 const inputDocsTableBody = document.getElementById('inputDocsTableBody');
 const outputDocsTableBody = document.getElementById('outputDocsTableBody');
 
@@ -47,13 +41,6 @@ const closeModalBtn = document.getElementById('closeModalBtn');
 const cancelModalBtn = document.getElementById('cancelModalBtn');
 const confirmUploadBtn = document.getElementById('confirmUploadBtn');
 
-const chatTabs = {
-  config: document.querySelector('.chat-tab[data-tab="config"]'),
-  content: document.querySelector('.chat-tab[data-tab="content"]'),
-  campaign: document.querySelector('.chat-tab[data-tab="campaign"]')
-};
-
-
 function getSortedInputDocuments() {
   return [...state.inputDocuments].sort((a, b) => {
     if (a.id === 'in-1') return -1;
@@ -61,7 +48,6 @@ function getSortedInputDocuments() {
     return 0;
   });
 }
-
 
 function renderStatusIcon(status) {
   const entry = statusIconMap[status] || statusIconMap.warning;
@@ -130,6 +116,17 @@ function triggerDocumentDownload(doc) {
   URL.revokeObjectURL(url);
 }
 
+function renderChat() {
+  chatStream.innerHTML = '';
+  state.messages.forEach((entry) => {
+    const msg = document.createElement('div');
+    msg.className = `message ${entry.role}`;
+    msg.textContent = entry.text;
+    chatStream.appendChild(msg);
+  });
+  chatStream.scrollTop = chatStream.scrollHeight;
+}
+
 function handleDocumentAction(event) {
   const button = event.target.closest('button[data-action]');
   if (!button) return;
@@ -146,12 +143,6 @@ function handleDocumentAction(event) {
   }
 
   if (action === 'remove') {
-    if (type === 'input' && id === 'in-1') {
-      state.messages.push({ role: 'agent', text: 'Der Fragebogen bleibt immer oben bestehen und kann nicht entfernt werden.' });
-      renderChat();
-      return;
-    }
-
     state[listKey] = docs.filter((entry) => entry.id !== id);
     state.messages.push({ role: 'agent', text: `${doc.name} wurde entfernt.` });
     renderDocuments();
@@ -160,48 +151,13 @@ function handleDocumentAction(event) {
   renderChat();
 }
 
-function showPage(pageKey) {
-  const isWorkplace = pageKey === 'workplace';
-  workplacePage.classList.toggle('active-page', isWorkplace);
-  settingsPage.classList.toggle('active-page', !isWorkplace);
-
-  navItems.forEach((item) => {
-    item.classList.toggle('active', item.dataset.page === pageKey);
-  });
-}
-
-function renderChat() {
-  chatStream.innerHTML = '';
-  state.messages.forEach((entry) => {
-    const msg = document.createElement('div');
-    msg.className = `message ${entry.role}`;
-    msg.textContent = entry.text;
-    chatStream.appendChild(msg);
-  });
-  chatStream.scrollTop = chatStream.scrollHeight;
-}
-
-function updateWorkspaceHeader() {
-  statusBanner.classList.remove('hidden');
-  publishCampaignBtn.classList.add('hidden');
-
-  if (state.stage === 'configuration') {
-    statusBanner.textContent = '🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.';
-  } else if (state.stage === 'content') {
-    statusBanner.textContent = '🔓 Inhalt ist freigeschaltet und bereit für Uploads.';
-  } else {
-    statusBanner.textContent = '🚀 Kampagne ist freigeschaltet und kann veröffentlicht werden.';
-    publishCampaignBtn.classList.remove('hidden');
-  }
-}
-
 function openUploadModal(mode) {
   state.uploadMode = mode;
   mediaTextInput.value = '';
 
   if (mode === 'media') {
     uploadModalTitle.textContent = 'Bild/Video und Text hochladen';
-    uploadModalHint.textContent = 'Bitte lade ein Bild oder Video hoch und ergänze einen Text, bevor du auf Hochladen klickst.';
+    uploadModalHint.textContent = 'Bitte lade ein Bild oder Video hoch und ergänze optional einen Text.';
     mediaTextField.classList.remove('hidden');
   } else {
     uploadModalTitle.textContent = 'Dokument hochladen';
@@ -217,37 +173,6 @@ function closeUploadModal() {
   uploadModal.classList.add('hidden');
 }
 
-function unlockContentStage() {
-  if (state.stage !== 'configuration') return;
-
-  state.stage = 'content';
-  chatTabs.content.disabled = false;
-  chatTabs.content.classList.remove('locked');
-  uploadDocBtn.disabled = false;
-  uploadMediaBtn.disabled = false;
-
-  state.messages.push({
-    role: 'agent',
-    text: 'Konfiguration abgeschlossen. Du kannst jetzt den Fragebogen herunterladen und Input-Dokumente/Medien hochladen.'
-  });
-  updateWorkspaceHeader();
-  renderChat();
-}
-
-function unlockCampaignStage() {
-  if (state.stage !== 'content') return;
-
-  state.stage = 'campaign';
-  chatTabs.campaign.disabled = false;
-  chatTabs.campaign.classList.remove('locked');
-  state.messages.push({
-    role: 'agent',
-    text: 'Alle Inhalte vollständig. Kampagne kann jetzt veröffentlicht werden.'
-  });
-  updateWorkspaceHeader();
-  renderChat();
-}
-
 sendMessageBtn.addEventListener('click', () => {
   const value = chatInput.value.trim();
   if (!value) return;
@@ -255,12 +180,6 @@ sendMessageBtn.addEventListener('click', () => {
   state.messages.push({ role: 'user', text: value });
   chatInput.value = '';
   renderChat();
-
-  if (state.stage === 'configuration') {
-    unlockContentStage();
-  } else if (state.stage === 'content') {
-    unlockCampaignStage();
-  }
 });
 
 chatInput.addEventListener('keydown', (event) => {
@@ -286,18 +205,7 @@ headerLandingPageBtn.addEventListener('click', () => {
   renderChat();
 });
 
-publishCampaignBtn.addEventListener('click', () => {
-  state.messages.push({ role: 'agent', text: 'Veröffentlichung wurde gestartet (Demo).' });
-  renderChat();
-});
-
 confirmUploadBtn.addEventListener('click', () => {
-  if (state.uploadMode === 'media' && !mediaTextInput.value.trim()) {
-    state.messages.push({ role: 'agent', text: 'Für Bild/Video-Uploads ist ein begleitender Text erforderlich.' });
-    renderChat();
-    return;
-  }
-
   if (state.uploadMode === 'docs') {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
@@ -324,21 +232,8 @@ uploadModal.addEventListener('click', (event) => {
   if (event.target === uploadModal) closeUploadModal();
 });
 
-navItems.forEach((item) => {
-  item.addEventListener('click', () => showPage(item.dataset.page));
-});
-
 inputDocsTableBody.addEventListener('click', handleDocumentAction);
 outputDocsTableBody.addEventListener('click', handleDocumentAction);
 
-Object.values(chatTabs).forEach((tab) => {
-  tab.addEventListener('click', () => {
-    Object.values(chatTabs).forEach((entry) => entry.classList.remove('active'));
-    tab.classList.add('active');
-  });
-});
-
-updateWorkspaceHeader();
 renderDocuments();
 renderChat();
-showPage('workplace');
