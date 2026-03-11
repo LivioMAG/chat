@@ -26,7 +26,8 @@ const sendMessageBtn = document.getElementById('sendMessageBtn');
 const uploadDocBtn = document.getElementById('uploadDocBtn');
 const uploadMediaBtn = document.getElementById('uploadMediaBtn');
 const statusBanner = document.getElementById('statusBanner');
-const headerActionBtn = document.getElementById('headerActionBtn');
+const headerQuestionnaireBtn = document.getElementById('headerQuestionnaireBtn');
+const headerLandingPageBtn = document.getElementById('headerLandingPageBtn');
 const inputDocsTableBody = document.getElementById('inputDocsTableBody');
 const outputDocsTableBody = document.getElementById('outputDocsTableBody');
 
@@ -46,11 +47,19 @@ const chatTabs = {
 };
 
 
+function getSortedInputDocuments() {
+  return [...state.inputDocuments].sort((a, b) => {
+    if (a.id === 'in-1') return -1;
+    if (b.id === 'in-1') return 1;
+    return 0;
+  });
+}
+
 function renderDocuments() {
   inputDocsTableBody.innerHTML = '';
   outputDocsTableBody.innerHTML = '';
 
-  state.inputDocuments.forEach((doc) => {
+  getSortedInputDocuments().forEach((doc) => {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${doc.name}</td>
@@ -59,8 +68,9 @@ function renderDocuments() {
       <td><span class="status-pill">${doc.status}</span></td>
       <td>
         <div class="table-actions">
-          <button class="table-action-btn" data-action="download" data-type="input" data-id="${doc.id}">Download</button>
-          <button class="table-action-btn danger" data-action="remove" data-type="input" data-id="${doc.id}">Entfernen</button>
+          <button class="table-action-btn" title="Datei herunterladen" aria-label="Datei herunterladen" data-action="download" data-type="input" data-id="${doc.id}"><span aria-hidden="true">⬇️</span></button>
+          <button class="table-action-btn danger" title="Datei löschen" aria-label="Datei löschen" data-action="remove" data-type="input" data-id="${doc.id}"><span aria-hidden="true">🗑️</span></button>
+          <button class="table-action-btn" title="Status anzeigen" aria-label="Status anzeigen" data-action="status" data-type="input" data-id="${doc.id}"><span aria-hidden="true">ℹ️</span></button>
         </div>
       </td>
     `;
@@ -81,8 +91,9 @@ function renderDocuments() {
       <td>${doc.date}</td>
       <td>
         <div class="table-actions">
-          <button class="table-action-btn" data-action="download" data-type="output" data-id="${doc.id}">Download</button>
-          <button class="table-action-btn danger" data-action="remove" data-type="output" data-id="${doc.id}">Entfernen</button>
+          <button class="table-action-btn" title="Datei herunterladen" aria-label="Datei herunterladen" data-action="download" data-type="output" data-id="${doc.id}"><span aria-hidden="true">⬇️</span></button>
+          <button class="table-action-btn danger" title="Datei löschen" aria-label="Datei löschen" data-action="remove" data-type="output" data-id="${doc.id}"><span aria-hidden="true">🗑️</span></button>
+          <button class="table-action-btn" title="Status anzeigen" aria-label="Status anzeigen" data-action="status" data-type="output" data-id="${doc.id}"><span aria-hidden="true">ℹ️</span></button>
         </div>
       </td>
     `;
@@ -124,9 +135,20 @@ function handleDocumentAction(event) {
   }
 
   if (action === 'remove') {
+    if (type === 'input' && id === 'in-1') {
+      state.messages.push({ role: 'agent', text: 'Der Fragebogen bleibt immer oben bestehen und kann nicht entfernt werden.' });
+      renderChat();
+      return;
+    }
+
     state[listKey] = docs.filter((entry) => entry.id !== id);
     state.messages.push({ role: 'agent', text: `${doc.name} wurde entfernt.` });
     renderDocuments();
+  }
+
+  if (action === 'status') {
+    const statusText = type === 'input' ? `Status von ${doc.name}: ${doc.status}.` : `Status von ${doc.name}: bereit für Download.`;
+    state.messages.push({ role: 'agent', text: statusText });
   }
 
   renderChat();
@@ -154,19 +176,14 @@ function renderChat() {
 }
 
 function updateWorkspaceHeader() {
+  statusBanner.classList.remove('hidden');
+
   if (state.stage === 'configuration') {
-    statusBanner.classList.remove('hidden');
-    headerActionBtn.classList.add('hidden');
-    return;
-  }
-
-  statusBanner.classList.add('hidden');
-  headerActionBtn.classList.remove('hidden');
-
-  if (state.stage === 'content') {
-    headerActionBtn.textContent = 'Fragebogen herunterladen';
+    statusBanner.textContent = '🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.';
+  } else if (state.stage === 'content') {
+    statusBanner.textContent = '🔓 Inhalt ist freigeschaltet und bereit für Uploads.';
   } else {
-    headerActionBtn.textContent = 'Kampagne veröffentlichen';
+    statusBanner.textContent = '🚀 Kampagne ist freigeschaltet und kann veröffentlicht werden.';
   }
 }
 
@@ -247,12 +264,17 @@ chatInput.addEventListener('keydown', (event) => {
 uploadDocBtn.addEventListener('click', () => openUploadModal('docs'));
 uploadMediaBtn.addEventListener('click', () => openUploadModal('media'));
 
-headerActionBtn.addEventListener('click', () => {
-  if (state.stage === 'content') {
-    state.messages.push({ role: 'agent', text: 'Der Fragebogen-Download wurde gestartet (Demo).' });
-  } else if (state.stage === 'campaign') {
-    state.messages.push({ role: 'agent', text: 'Kampagne wird veröffentlicht (Demo).' });
+headerQuestionnaireBtn.addEventListener('click', () => {
+  const questionnaire = state.inputDocuments.find((doc) => doc.id === 'in-1');
+  if (questionnaire) {
+    triggerDocumentDownload(questionnaire);
   }
+  state.messages.push({ role: 'agent', text: 'Der Fragebogen-Download wurde gestartet (Demo).' });
+  renderChat();
+});
+
+headerLandingPageBtn.addEventListener('click', () => {
+  state.messages.push({ role: 'agent', text: 'Die Landingpage-Vorschau wird geöffnet (Demo).' });
   renderChat();
 });
 

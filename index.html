@@ -41,7 +41,15 @@
             <h1>Arbeitsplatz</h1>
             <div class="header-action" id="headerActionArea">
               <div class="lock-banner" id="statusBanner">🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.</div>
-              <button class="primary-btn hidden" id="headerActionBtn"></button>
+              <button class="primary-btn icon-label-btn" id="headerQuestionnaireBtn" title="Fragebogen herunterladen" aria-label="Fragebogen herunterladen">
+                <span class="btn-icon" aria-hidden="true">📋</span>
+                <span>Fragebogen</span>
+              </button>
+              <button class="secondary-btn icon-label-btn" id="headerLandingPageBtn" title="Meine Landingpage anschauen" aria-label="Meine Landingpage anschauen">
+                <span class="btn-icon" aria-hidden="true">🌐</span>
+                <span>Landingpage</span>
+              </button>
+              <div class="approval-pill" id="approvalInfo" title="Wer darf die Kampagne freigeben?">✅ Freigabe: Max Mustermann</div>
             </div>
           </header>
 
@@ -49,7 +57,10 @@
             <article class="panel input-docs">
               <div class="panel-head">
                 <h2>Input Dokumente</h2>
-                <button class="secondary-btn" id="uploadDocBtn" disabled>Datei hochladen</button>
+                <button class="secondary-btn icon-label-btn" id="uploadDocBtn" title="Datei hochladen" disabled>
+                  <span class="btn-icon" aria-hidden="true">📄</span>
+                  <span>Datei hochladen</span>
+                </button>
               </div>
               <table>
                 <thead>
@@ -85,7 +96,10 @@
             <article class="panel input-media">
               <div class="panel-head">
                 <h2>Input Bilder</h2>
-                <button class="secondary-btn" id="uploadMediaBtn" disabled>Bild/Video + Text hochladen</button>
+                <button class="secondary-btn icon-label-btn" id="uploadMediaBtn" title="Bild/Video + Text hochladen" disabled>
+                  <span class="btn-icon" aria-hidden="true">🖼️</span>
+                  <span>Bild/Video + Text hochladen</span>
+                </button>
               </div>
               <table>
                 <thead>
