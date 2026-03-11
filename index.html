@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -39,14 +39,17 @@
         <div class="workspace-column">
           <header class="workspace-header">
             <h1>Arbeitsplatz</h1>
-            <div class="lock-banner">🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.</div>
+            <div class="header-action" id="headerActionArea">
+              <div class="lock-banner" id="statusBanner">🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.</div>
+              <button class="primary-btn hidden" id="headerActionBtn"></button>
+            </div>
           </header>
 
           <div class="workspace-grid">
             <article class="panel input-docs">
               <div class="panel-head">
                 <h2>Input Dokumente</h2>
-                <button class="secondary-btn" disabled>Datei hochladen</button>
+                <button class="secondary-btn" id="uploadDocBtn" disabled>Datei hochladen</button>
               </div>
               <table>
                 <thead>
@@ -104,10 +107,7 @@
             <article class="panel input-media">
               <div class="panel-head">
                 <h2>Input Bilder</h2>
-                <div class="action-row">
-                  <button class="secondary-btn" disabled>Bild oder Video hochladen</button>
-                  <button class="ghost-btn" disabled>Beschreibung hinzufügen</button>
-                </div>
+                <button class="secondary-btn" id="uploadMediaBtn" disabled>Bild/Video + Text hochladen</button>
               </div>
               <table>
                 <thead>
@@ -158,8 +158,6 @@
             <input type="text" id="chatInput" placeholder="Nachricht eingeben..." />
             <button id="sendMessageBtn">Senden</button>
           </div>
-
-          <button id="publishCampaignBtn" class="publish-btn hidden">Kampagne veröffentlichen</button>
         </aside>
       </section>
 
@@ -186,6 +184,28 @@
           </article>
         </div>
       </section>
+    </div>
+
+    <div class="modal hidden" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3 id="uploadModalTitle"></h3>
+          <button class="icon-btn" id="closeModalBtn" aria-label="Schliessen">×</button>
+        </div>
+        <p id="uploadModalHint"></p>
+        <div class="dropzone" id="uploadDropzone">
+          <p class="dropzone-title">Dateien hier hineinziehen</p>
+          <p class="dropzone-subtitle">oder anklicken, um eine Datei auszuwählen</p>
+        </div>
+        <label class="field hidden" id="mediaTextField">
+          Text/Beschreibung
+          <textarea id="mediaTextInput" rows="3" placeholder="Beschreibe den Inhalt zu Bild/Video..."></textarea>
+        </label>
+        <div class="modal-actions">
+          <button class="ghost-btn" id="cancelModalBtn">Abbrechen</button>
+          <button class="primary-btn" id="confirmUploadBtn">Hochladen</button>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
