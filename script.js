@@ -8,13 +8,19 @@ const state = {
   ],
   uploadMode: null,
   inputDocuments: [
-    { id: 'in-1', name: 'Fragebogen.pdf', type: 'Formular', date: '12.03', status: 'OK' },
-    { id: 'in-2', name: 'Briefing.docx', type: 'Text', date: '12.03', status: 'OK' }
+    { id: 'in-1', name: 'Fragebogen.pdf', type: 'Formular', date: '12.03', status: 'ok' },
+    { id: 'in-2', name: 'Briefing.docx', type: 'Text', date: '12.03', status: 'error' }
   ],
   outputDocuments: [
     { id: 'out-1', name: 'Kampagnenanalyse.pdf', type: 'Report', date: '14.03' },
     { id: 'out-2', name: 'Contentstrategie.pdf', type: 'Strategie', date: '14.03' }
   ]
+};
+
+const statusIconMap = {
+  ok: { icon: '✅', label: 'Status OK' },
+  warning: { icon: '⚠️', label: 'Status Warnung' },
+  error: { icon: '❌', label: 'Status Fehler' }
 };
 
 const navItems = document.querySelectorAll('.nav-item');
@@ -28,6 +34,7 @@ const uploadMediaBtn = document.getElementById('uploadMediaBtn');
 const statusBanner = document.getElementById('statusBanner');
 const headerQuestionnaireBtn = document.getElementById('headerQuestionnaireBtn');
 const headerLandingPageBtn = document.getElementById('headerLandingPageBtn');
+const publishCampaignBtn = document.getElementById('publishCampaignBtn');
 const inputDocsTableBody = document.getElementById('inputDocsTableBody');
 const outputDocsTableBody = document.getElementById('outputDocsTableBody');
 
@@ -55,6 +62,12 @@ function getSortedInputDocuments() {
   });
 }
 
+
+function renderStatusIcon(status) {
+  const entry = statusIconMap[status] || statusIconMap.warning;
+  return `<span class="status-icon" title="${entry.label}" aria-label="${entry.label}">${entry.icon}</span>`;
+}
+
 function renderDocuments() {
   inputDocsTableBody.innerHTML = '';
   outputDocsTableBody.innerHTML = '';
@@ -65,12 +78,11 @@ function renderDocuments() {
       <td>${doc.name}</td>
       <td>${doc.type}</td>
       <td>${doc.date}</td>
-      <td><span class="status-pill">${doc.status}</span></td>
+      <td>${renderStatusIcon(doc.status)}</td>
       <td>
         <div class="table-actions">
           <button class="table-action-btn" title="Datei herunterladen" aria-label="Datei herunterladen" data-action="download" data-type="input" data-id="${doc.id}"><span aria-hidden="true">⬇️</span></button>
           <button class="table-action-btn danger" title="Datei löschen" aria-label="Datei löschen" data-action="remove" data-type="input" data-id="${doc.id}"><span aria-hidden="true">🗑️</span></button>
-          <button class="table-action-btn" title="Status anzeigen" aria-label="Status anzeigen" data-action="status" data-type="input" data-id="${doc.id}"><span aria-hidden="true">ℹ️</span></button>
         </div>
       </td>
     `;
@@ -93,7 +105,6 @@ function renderDocuments() {
         <div class="table-actions">
           <button class="table-action-btn" title="Datei herunterladen" aria-label="Datei herunterladen" data-action="download" data-type="output" data-id="${doc.id}"><span aria-hidden="true">⬇️</span></button>
           <button class="table-action-btn danger" title="Datei löschen" aria-label="Datei löschen" data-action="remove" data-type="output" data-id="${doc.id}"><span aria-hidden="true">🗑️</span></button>
-          <button class="table-action-btn" title="Status anzeigen" aria-label="Status anzeigen" data-action="status" data-type="output" data-id="${doc.id}"><span aria-hidden="true">ℹ️</span></button>
         </div>
       </td>
     `;
@@ -146,11 +157,6 @@ function handleDocumentAction(event) {
     renderDocuments();
   }
 
-  if (action === 'status') {
-    const statusText = type === 'input' ? `Status von ${doc.name}: ${doc.status}.` : `Status von ${doc.name}: bereit für Download.`;
-    state.messages.push({ role: 'agent', text: statusText });
-  }
-
   renderChat();
 }
 
@@ -177,6 +183,7 @@ function renderChat() {
 
 function updateWorkspaceHeader() {
   statusBanner.classList.remove('hidden');
+  publishCampaignBtn.classList.add('hidden');
 
   if (state.stage === 'configuration') {
     statusBanner.textContent = '🔒 Arbeitsplatz wird freigeschaltet, nachdem die Konfiguration abgeschlossen ist.';
@@ -184,6 +191,7 @@ function updateWorkspaceHeader() {
     statusBanner.textContent = '🔓 Inhalt ist freigeschaltet und bereit für Uploads.';
   } else {
     statusBanner.textContent = '🚀 Kampagne ist freigeschaltet und kann veröffentlicht werden.';
+    publishCampaignBtn.classList.remove('hidden');
   }
 }
 
@@ -278,6 +286,11 @@ headerLandingPageBtn.addEventListener('click', () => {
   renderChat();
 });
 
+publishCampaignBtn.addEventListener('click', () => {
+  state.messages.push({ role: 'agent', text: 'Veröffentlichung wurde gestartet (Demo).' });
+  renderChat();
+});
+
 confirmUploadBtn.addEventListener('click', () => {
   if (state.uploadMode === 'media' && !mediaTextInput.value.trim()) {
     state.messages.push({ role: 'agent', text: 'Für Bild/Video-Uploads ist ein begleitender Text erforderlich.' });
@@ -294,7 +307,7 @@ confirmUploadBtn.addEventListener('click', () => {
       name: `Neues_Dokument_${state.inputDocuments.length + 1}.pdf`,
       type: 'Upload',
       date: `${day}.${month}`,
-      status: 'Neu'
+      status: 'warning'
     });
     renderDocuments();
   }
