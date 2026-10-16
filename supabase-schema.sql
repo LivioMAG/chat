@@ -347,3 +347,143 @@ create policy "storage_delete_weekly_attachments_own_or_admin"
       or public.is_admin()
     )
   );
+
+
+-- Erweiterung 2026-10-12: temporaere Mitarbeiter
+-- Additive migration: no existing records, tables or columns are removed.
+begin;
+
+create table if not exists public.temporary_workers (
+  id uuid primary key default gen_random_uuid(),
+  identity_key text not null unique,
+  first_name text not null check (length(first_name) between 1 and 100),
+  last_name text not null check (length(last_name) between 1 and 100),
+  birth_date date not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.temporary_weekly_reports (
+  id uuid primary key default gen_random_uuid(),
+  temporary_worker_id uuid not null references public.temporary_workers(id),
+  work_date date not null,
+  year integer not null,
+  kw integer not null check (kw between 1 and 53),
+  commission_number text not null check (length(trim(commission_number)) > 0),
+  project_name text not null check (length(trim(project_name)) > 0),
+  start_time time not null default '00:00',
+  end_time time not null default '00:00',
+  lunch_break_minutes integer not null default 0 check (lunch_break_minutes >= 0),
+  additional_break_minutes integer not null default 0 check (additional_break_minutes >= 0),
+  total_work_minutes integer not null default 0 check (total_work_minutes between 0 and 1440),
+  total_adjusted_work_minutes integer not null default 0 check (total_adjusted_work_minutes >= 0),
+  expenses_amount numeric(10,2) not null default 0 check (expenses_amount >= 0),
+  other_costs_amount numeric(10,2) not null default 0 check (other_costs_amount >= 0),
+  expense_note text not null default '',
+  notes text not null default '',
+  attachments jsonb not null default '[]'::jsonb check (jsonb_typeof(attachments) = 'array'),
+  abz_typ smallint not null default 0 check (abz_typ = 0),
+  controll text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint temporary_zero_adjusted_check check (total_work_minutes <> 0 or total_adjusted_work_minutes = 0)
+);
+create index if not exists temporary_reports_worker_date_idx on public.temporary_weekly_reports(temporary_worker_id, work_date);
+create index if not exists temporary_reports_week_idx on public.temporary_weekly_reports(year, kw);
+
+create table if not exists public.temporary_access_sessions (
+  token_hash text primary key,
+  temporary_worker_id uuid not null references public.temporary_workers(id),
+  expires_at timestamptz not null,
+  revoked boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists temporary_sessions_worker_idx on public.temporary_access_sessions(temporary_worker_id);
+create table if not exists public.temporary_access_limits (
+  key_hash text primary key,
+  window_start timestamptz not null default now(),
+  request_count integer not null default 1
+);
+
+alter table public.temporary_workers enable row level security;
+alter table public.temporary_weekly_reports enable row level security;
+alter table public.temporary_access_sessions enable row level security;
+alter table public.temporary_access_limits enable row level security;
+revoke all on public.temporary_workers, public.temporary_weekly_reports,
+  public.temporary_access_sessions, public.temporary_access_limits from public, anon, authenticated;
+grant all on public.temporary_workers, public.temporary_weekly_reports,
+  public.temporary_access_sessions, public.temporary_access_limits to service_role;
+grant select on public.temporary_workers to authenticated;
+grant select, update on public.temporary_weekly_reports to authenticated;
+do $policy$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'temporary_workers' and policyname = 'temporary_workers_admin_read') then
+    create policy temporary_workers_admin_read on public.temporary_workers for select to authenticated
+  using (exists (select 1 from public.app_profiles where id = (select auth.uid()) and is_admin = true));
+  end if;
+end $policy$;
+do $policy$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'temporary_weekly_reports' and policyname = 'temporary_reports_admin_read') then
+    create policy temporary_reports_admin_read on public.temporary_weekly_reports for select to authenticated
+  using (exists (select 1 from public.app_profiles where id = (select auth.uid()) and is_admin = true));
+  end if;
+end $policy$;
+do $policy$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'temporary_weekly_reports' and policyname = 'temporary_reports_admin_update') then
+    create policy temporary_reports_admin_update on public.temporary_weekly_reports for update to authenticated
+  using (exists (select 1 from public.app_profiles where id = (select auth.uid()) and is_admin = true))
+  with check (exists (select 1 from public.app_profiles where id = (select auth.uid()) and is_admin = true));
+  end if;
+end $policy$;
+
+-- Service-only RPC. Resets counters by updating, never by deleting rows.
+create or replace function public.temporary_consume_rate_limit(p_key text, p_limit integer)
+returns boolean language plpgsql security invoker set search_path = '' as $$
+declare allowed boolean;
+begin
+  insert into public.temporary_access_limits as limits(key_hash) values (p_key)
+  on conflict (key_hash) do update set
+    request_count = case when limits.window_start < now() - interval '1 minute' then 1 else limits.request_count + 1 end,
+    window_start = case when limits.window_start < now() - interval '1 minute' then now() else limits.window_start end
+  returning request_count <= p_limit into allowed;
+  return allowed;
+end;
+$$;
+revoke all on function public.temporary_consume_rate_limit(text, integer) from public, anon, authenticated;
+grant execute on function public.temporary_consume_rate_limit(text, integer) to service_role;
+
+create or replace function public.temporary_report_updated_at() returns trigger
+language plpgsql security invoker set search_path = '' as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+revoke all on function public.temporary_report_updated_at() from public, anon;
+grant execute on function public.temporary_report_updated_at() to authenticated, service_role;
+do $trigger$ begin
+  if not exists (select 1 from pg_trigger where tgname = 'temporary_reports_updated_at' and tgrelid = 'public.temporary_weekly_reports'::regclass) then
+    create trigger temporary_reports_updated_at before update on public.temporary_weekly_reports
+  for each row execute function public.temporary_report_updated_at();
+  end if;
+end $trigger$;
+
+insert into storage.buckets(id, name, public, file_size_limit, allowed_mime_types)
+values ('temporary-report-attachments', 'temporary-report-attachments', false, 10485760,
+  array['image/jpeg','image/png','image/webp','image/heic','image/heif','application/pdf'])
+on conflict (id) do nothing;
+do $policy$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'temporary_attachments_admin_read') then
+    create policy temporary_attachments_admin_read on storage.objects for select to authenticated
+  using (bucket_id = 'temporary-report-attachments' and exists
+    (select 1 from public.app_profiles where id = (select auth.uid()) and is_admin = true));
+  end if;
+end $policy$;
+do $policy$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'temporary_attachments_admin_insert') then
+    create policy temporary_attachments_admin_insert on storage.objects for insert to authenticated
+  with check (bucket_id = 'temporary-report-attachments' and exists
+    (select 1 from public.app_profiles where id = (select auth.uid()) and is_admin = true));
+  end if;
+end $policy$;
+
+notify pgrst, 'reload schema';
+commit;

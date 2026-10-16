@@ -16,15 +16,16 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <meta name="app-build-version" content="2026-07-01-1" />
-    <link rel="manifest" href="manifest.webmanifest?v=2026-07-01-1" />
-    <link rel="stylesheet" href="style.css?v=2026-07-01-1" />
+    <meta name="app-build-version" content="2026-06-05-2" />
+    <link rel="manifest" href="manifest.webmanifest?v=2026-06-05-2" />
+    <link rel="stylesheet" href="style.css?v=2026-06-05-2" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script defer src="script.js?v=2026-07-01-1"></script>
+    <script defer src="temporary-access.js?v=2026-10-12-1"></script>
+    <script defer src="script.js?v=2026-10-12-1"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -122,7 +123,25 @@
           </div>
         </section>
 
+        <section class="glass-card temporary-entry-card" id="temporaryEntryCard">
+          <button class="secondary-btn" id="continueWithoutAccountBtn" type="button">Ohne Account fortfahren</button>
+          <form id="temporaryAccessForm" class="form-grid hidden">
+            <h2>Temporärer Mitarbeiter</h2>
+            <p>Erfasse deine Angaben. Mit denselben Angaben kannst du deine Rapporte später wieder öffnen.</p>
+            <label class="field"><span>Vorname</span><input id="temporaryFirstName" type="text" autocomplete="given-name" maxlength="100" required /></label>
+            <label class="field"><span>Nachname</span><input id="temporaryLastName" type="text" autocomplete="family-name" maxlength="100" required /></label>
+            <label class="field"><span>Geburtsdatum</span><input id="temporaryBirthDate" type="date" autocomplete="bday" min="1900-01-01" required /></label>
+            <p id="temporaryAccessError" role="alert"></p>
+            <div class="auth-actions"><button id="temporaryAccessSubmitBtn" class="primary-btn" type="submit">Fortfahren</button><button id="cancelTemporaryAccessBtn" class="link-btn" type="button">Zurück zum Login</button></div>
+          </form>
+        </section>
+
         <section class="app-view hidden" id="appView">
+          <section id="temporaryIdentityBanner" class="glass-card hidden" aria-live="polite">
+            <strong>Temporärer Mitarbeiter</strong>
+            <p id="temporaryIdentityLabel"></p>
+            <button id="leaveTemporaryAccessBtn" class="link-btn" type="button">Temporären Zugang verlassen</button>
+          </section>
           <header class="app-nav">
             <button
               id="navMenuToggleBtn"
@@ -134,13 +153,6 @@
               aria-controls="navMenuDrawer"
               title="Navigation öffnen"
             ><span class="btn-icon" data-lucide="menu" aria-hidden="true"></span></button>
-            <button
-              id="servicePageBtn"
-              class="service-page-btn"
-              type="button"
-              aria-label="Service öffnen"
-              title="Service"
-            ><span class="btn-icon" data-lucide="user-round" aria-hidden="true"></span><span class="service-page-label">Service</span></button>
           </header>
 
           <aside class="nav-menu hidden" id="navMenuDrawer" aria-hidden="true" aria-label="Hauptnavigation">
@@ -449,15 +461,7 @@
                 <div class="field-row two-columns">
                   <label class="field">
                     <span>Kommissionsnummer</span>
-                    <input
-                      id="savedCommissionNumberInput"
-                      type="text"
-                      required
-                      placeholder="z. B. AB12CD34"
-                      maxlength="8"
-                      pattern="[A-Za-z0-9]{8}"
-                      title="Genau 8 Buchstaben oder Zahlen"
-                    />
+                    <input id="savedCommissionNumberInput" type="text" required placeholder="z. B. K-2026-041" />
                   </label>
                   <label class="field">
                     <span>Projektname</span>
@@ -532,7 +536,7 @@
             <label class="field compact-field report-type-field">
               <span>Rapportart</span>
               <select id="reportTypeInput">
-                <option value="" selected>— Rapport —</option>
+                <option value="" selected>— Normaler Rapport —</option>
                 <option value="ferien">Ferien</option>
                 <option value="krankheit">Krankheit</option>
                 <option value="militaer">Militär</option>
@@ -557,10 +561,7 @@
                 type="text"
                 inputmode="text"
                 autocomplete="off"
-                placeholder="z. B. AB12CD34"
-                maxlength="8"
-                pattern="[A-Za-z0-9]{8}"
-                title="Genau 8 Buchstaben oder Zahlen"
+                placeholder="z. B. K-2026-041"
               />
               <button class="secondary-btn commission-dropdown-btn" id="savedCommissionDropdownBtn" type="button" aria-label="Gespeicherte Kommissionen anzeigen"><span class="btn-icon" data-lucide="chevron-down" aria-hidden="true"></span></button>
             </div>
@@ -583,6 +584,7 @@
             </div>
           </div>
 
+          <button class="secondary-btn" id="zeroHoursBtn" type="button">0 Stunden buchen</button>
           <div id="normalTimeFields">
             <div class="field-row split-pair two-columns">
               <label class="field compact-field">

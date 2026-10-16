@@ -15,15 +15,17 @@ Mobile Web-App für Wochenrapporte von Monteuren mit Supabase Auth, Datenhaltung
 
 ## Neue Version für Hostinger hochladen
 
-Aktuelle App-Version: `2026-06-05-2`
+Aktuelle App-Version: `2026-10-12-1`
 
-Für Hostinger keine neuen Dateien erzeugen: Beim Upload die bestehenden App-Dateien aus dem Repo nach `public_html` hochladen und vorhandene Dateien überschreiben. Wichtig sind `index.html`, `sw.js`, `script.js`, `style.css`, `manifest.webmanifest`, `supabase-config.json`, `surcharge-rules.json` und `.htaccess`.
+Beim Upload die App-Dateien aus dem Ordner `Mobileansicht` nach `public_html` hochladen und vorhandene Dateien überschreiben. Wichtig sind `index.html`, `sw.js`, `script.js`, **`temporary-access.js` (neu)**, `style.css`, `manifest.webmanifest`, `supabase-config.json`, `surcharge-rules.json` und `.htaccess`.
 
 Damit keine alten Seiten geladen werden, muss `.htaccess` wirklich in `public_html` liegen und auf Hostinger als Punktdatei sichtbar/hochgeladen sein. Die Datei setzt `no-store`-Header; zusätzlich tragen `index.html` und `sw.js` die aktuelle Versionsnummer, damit Browser, PWA und Service Worker die neue Version erzwingen.
 
 Nach dem Upload Browser hart neu laden (`Ctrl/Cmd + Shift + R`) und installierte PWA/App einmal vollständig schließen und wieder öffnen. Wenn trotzdem noch eine alte Ansicht erscheint, in Hostinger zusätzlich alle Server-/LiteSpeed-/CDN-Caches leeren und danach die App erneut öffnen.
 
 ## Supabase einrichten
+
+Für den neuen temporären Zugang und Nullstundenrapporte siehe `../Webansicht/docs/temporary-reports.md`. Die dort beschriebene ergänzende Migration und Edge Function gehören zum gemeinsamen Supabase-Projekt. Bestehende produktive Daten dürfen nicht gelöscht werden; die gesamten älteren Schemaskripte deshalb nicht ungeprüft erneut ausführen.
 
 1. In Supabase ein neues Projekt anlegen.
 2. Im SQL Editor den Inhalt aus `supabase-schema.sql` ausführen.

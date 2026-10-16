@@ -7,8 +7,6 @@ const CHATBOT_INITIAL_MESSAGES = [
 ];
 const CHATBOT_INPUT_PLACEHOLDER = 'Was beschäftigt dich';
 const CHATBOT_LANGUAGE = 'de';
-const SERVICE_PAGE_URL = './service.html';
-const MOBILE_SERVICE_QUERY = '(max-width: 767px)';
 const CHATBOT_I18N = {
   de: {
     title: '',
@@ -45,8 +43,6 @@ const REPORT_TYPE_LABELS = {
   berufsschule: 'Berufsschule'
 };
 const AUTO_REPORT_TYPES = new Set(['ferien', 'krankheit', 'militaer', 'unfall', 'feiertag', 'uk', 'berufsschule']);
-const COMMISSION_NUMBER_PATTERN = /^[A-Za-z0-9]{8}$/;
-const COMMISSION_NUMBER_ERROR = 'Kommissionsnummer muss genau 8 Buchstaben oder Zahlen enthalten.';
 const ABSENCE_TYPE_BY_REPORT_TYPE = {
   ferien: 1,
   krankheit: 2,
@@ -81,6 +77,7 @@ const DAY_SHIFT_END_MINUTES = 22 * 60;
 const PROFILE_COLUMNS = 'id, email, first_name, last_name, full_name, role_label, tel, saved_commissions, is_admin';
 const ENTRY_MODE_SIMPLE = 'simple';
 const ENTRY_MODE_DETAILED = 'detailed';
+const PROJECT_NAME_PREVIEW_MAX_LENGTH = 30;
 const WEEKLY_REPORT_COLUMNS = [
   'id',
   'profile_id',
@@ -201,6 +198,7 @@ const state = {
   chatbotInitKey: '',
   supabase: null,
   session: null,
+  temporarySession: null,
   profile: null,
   weekOffset: 0,
   authMode: 'login',
@@ -242,7 +240,6 @@ const elements = {
   navMenuToggleBtn: document.getElementById('navMenuToggleBtn'),
   navMenuDrawer: document.getElementById('navMenuDrawer'),
   navMenuBackdrop: document.getElementById('navMenuBackdrop'),
-  servicePageBtn: document.getElementById('servicePageBtn'),
   navMenuItems: document.querySelectorAll('[data-nav-view]'),
   authForm: document.getElementById('authForm'),
   forgotPasswordForm: document.getElementById('forgotPasswordForm'),
@@ -501,20 +498,8 @@ function toggleNavMenu() {
   }
 }
 
-function isMobileServiceBlocked() {
-  return window.matchMedia?.(MOBILE_SERVICE_QUERY).matches || window.innerWidth <= 767;
-}
-
-function openServicePage() {
-  if (isMobileServiceBlocked()) {
-    showToast('Kann nicht auf dem Mobiltelefon geöffnet werden.', 'error');
-    return;
-  }
-
-  window.location.href = SERVICE_PAGE_URL;
-}
-
 function setCurrentView(view) {
+  if (state.temporarySession && !['timesheet', 'dashboard'].includes(view)) view = 'timesheet';
   state.currentView = ['timesheet', 'holidayAbsences', 'holidayHistory', 'dashboard', 'chatbot', 'settings', 'password'].includes(view) ? view : 'timesheet';
   const inSettings = ['settings', 'password'].includes(state.currentView);
   const inTimesheet = state.currentView === 'timesheet';
@@ -620,7 +605,7 @@ function getIsoWeekYearAndNumber(date = new Date()) {
 
 function formatPdfHours(minutes) {
   const hours = Number(minutes || 0) / 60;
-  return hours > 0 ? hours.toFixed(2) : '';
+  return hours.toFixed(2);
 }
 
 function buildWeeklyMatrixRows(reports) {
@@ -631,13 +616,13 @@ function buildWeeklyMatrixRows(reports) {
       entry.project_name = REPORT_TYPE_LABELS.berufsschule;
     }
     if (AUTO_REPORT_TYPES.has(reportType) && reportType !== 'berufsschule') return;
-    const dayIndex = Math.max(0, Math.min(5, ((parseLocalDate(entry.work_date).getDay() + 6) % 7)));
+    const dayIndex = Math.max(0, Math.min(6, ((parseLocalDate(entry.work_date).getDay() + 6) % 7)));
     const key = `${entry.project_name || '—'}|${entry.commission_number || ''}`;
     if (!grouped.has(key)) {
       grouped.set(key, {
         projectName: entry.project_name || '—',
         commissionNumber: entry.commission_number || '',
-        days: Array(6).fill(0),
+        days: Array(7).fill(0),
         total: 0,
         expenses: 0,
         notes: []
@@ -792,7 +777,9 @@ async function exportWeekPdf({ year, week, profileId, currentUserOnly = false } 
   weekEnd.setDate(weekStart.getDate() + 6);
   const startIso = getISODate(weekStart);
   const endIso = getISODate(weekEnd);
-  const { data: reports, error } = await state.supabase
+  const { data: reports, error } = state.temporarySession
+    ? { data: (await TemporaryAccess.call(state.config, state.temporarySession, 'list', { start_date: startIso, end_date: endIso })).reports, error: null }
+    : await state.supabase
     .from('weekly_reports')
     .select(WEEKLY_REPORT_COLUMNS)
     .eq('profile_id', selectedProfileId)
@@ -1028,10 +1015,6 @@ function requiresExpenseAttachment(payload) {
   return Number(payload.other_costs_amount || 0) > 0;
 }
 
-function isValidCommissionNumber(commissionNumber = '') {
-  return COMMISSION_NUMBER_PATTERN.test(String(commissionNumber || '').trim());
-}
-
 function commissionRequiresGeneralNote(commissionNumber = '') {
   return commissionNumber.toUpperCase().includes('K');
 }
@@ -1127,6 +1110,13 @@ function formatMinutesLong(totalMinutes) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${hours} Stunden ${String(minutes).padStart(2, '0')} Minuten`;
+}
+
+function truncateTextWithEllipsis(value, maxLength = PROJECT_NAME_PREVIEW_MAX_LENGTH) {
+  const normalizedValue = String(value || '').trim();
+  if (!normalizedValue) return '';
+  if (normalizedValue.length <= maxLength) return normalizedValue;
+  return `${normalizedValue.slice(0, maxLength)}...`;
 }
 
 function getHourMinuteParts(totalMinutes) {
@@ -1491,6 +1481,8 @@ async function loadConfig() {
 }
 
 async function syncSessionState(session) {
+  if (state.temporarySession && !session?.user) return;
+  if (session?.user) { state.temporarySession = null; TemporaryAccess.forget(); }
   state.session = session;
 
   if (!session?.user) {
@@ -1538,7 +1530,52 @@ async function bootstrapSession() {
     return;
   }
 
+  if (!data.session) {
+    const temporarySession = await TemporaryAccess.restore(state.config);
+    if (temporarySession) { await activateTemporarySession(temporarySession); return; }
+  }
   await syncSessionState(data.session);
+}
+
+async function activateTemporarySession(session) {
+  state.temporarySession = session;
+  state.session = { user: { id: session.worker.id, email: '' } };
+  state.profile = { ...session.worker, full_name: `${session.worker.first_name} ${session.worker.last_name}`, role_label: 'Temporärer Mitarbeiter', saved_commissions: [], is_admin: false };
+  state.holidays = [];
+  state.entries = [];
+  state.currentView = 'timesheet';
+  document.getElementById('temporaryAccessForm').classList.add('hidden');
+  render();
+  await loadEntries();
+  renderWeek();
+}
+
+async function enterTemporaryAccess(event) {
+  event.preventDefault();
+  const button = document.getElementById('temporaryAccessSubmitBtn');
+  const errorLabel = document.getElementById('temporaryAccessError');
+  button.disabled = true;
+  errorLabel.textContent = '';
+  try {
+    const session = await TemporaryAccess.enter(state.config, {
+      first_name: document.getElementById('temporaryFirstName').value.trim(),
+      last_name: document.getElementById('temporaryLastName').value.trim(),
+      birth_date: document.getElementById('temporaryBirthDate').value
+    });
+    await activateTemporarySession(session);
+  } catch (error) { errorLabel.textContent = error.message; }
+  finally { button.disabled = false; }
+}
+
+async function leaveTemporaryAccess() {
+  const session = state.temporarySession;
+  if (!session) return;
+  try { await TemporaryAccess.call(state.config, session, 'leave'); } catch { /* Always allow leaving this browser. */ }
+  TemporaryAccess.forget();
+  state.temporarySession = null;
+  state.latestEntriesRequestId += 1;
+  closeDrawer();
+  await syncSessionState(null);
 }
 
 function splitFullName(fullName = '') {
@@ -1555,6 +1592,7 @@ function getDisplayName(profile, fallbackEmail = '') {
   const first = profile?.first_name?.trim() || '';
   const last = profile?.last_name?.trim() || '';
   const full = [first, last].filter(Boolean).join(' ').trim();
+  if (state.temporarySession && profile?.birth_date) return `Temporärer Mitarbeiter – ${full} – ${formatDate(parseLocalDate(profile.birth_date))}`;
   return full || profile?.full_name || fallbackEmail;
 }
 
@@ -1832,12 +1870,6 @@ async function saveSavedCommission(event) {
 
   if (!commissionNumber || !projectName) {
     showToast('Kommissionsnummer und Projektname sind erforderlich.', 'error');
-    return;
-  }
-
-  if (!isValidCommissionNumber(commissionNumber)) {
-    showToast(COMMISSION_NUMBER_ERROR, 'error');
-    elements.savedCommissionNumberInput.focus();
     return;
   }
   if (editIndex === null && commissions.length >= 10) {
@@ -2208,6 +2240,7 @@ async function saveSettings(event) {
 }
 
 async function signOut() {
+  if (state.temporarySession) { await leaveTemporaryAccess(); return; }
   await runWithFeedback(
     {
       button: elements.signOutBtn,
@@ -2271,6 +2304,12 @@ async function loadEntries() {
   if (!state.session?.user) return;
   const requestId = ++state.latestEntriesRequestId;
   const days = getWeekDays();
+  if (state.temporarySession) {
+    const session = state.temporarySession;
+    const result = await TemporaryAccess.call(state.config, session, 'list', { start_date: days[0].iso, end_date: days[6].iso });
+    if (requestId === state.latestEntriesRequestId && session === state.temporarySession) state.entries = result.reports;
+    return;
+  }
   const currentProfileId = state.session.user.id;
   const searchPairs = Array.from(
     new Map(
@@ -2313,6 +2352,7 @@ async function loadEntries() {
 }
 
 async function loadHolidayRequests() {
+  if (state.temporarySession) { state.holidays = []; return; }
   if (!state.session?.user) return;
   const requestId = ++state.latestHolidayRequestId;
   const currentProfileId = state.session.user.id;
@@ -2513,6 +2553,7 @@ async function handleAttachmentSelection(kind, files) {
 }
 
 async function uploadAttachments(files, folderKey, existingFiles = []) {
+  if (state.temporarySession) return TemporaryAccess.upload(state.config, state.temporarySession, state.supabase, files, existingFiles);
   if (!files.length) return existingFiles;
 
   const uploaded = [...existingFiles];
@@ -2781,7 +2822,17 @@ async function saveEntry(event) {
     return;
   }
 
+  if (!AUTO_REPORT_TYPES.has(elements.reportTypeInput.value) && state.entryMode === ENTRY_MODE_DETAILED) {
+    const start = toMinutes(elements.startTimeInput.value), end = toMinutes(elements.endTimeInput.value);
+    const pauses = Number(elements.lunchMinutesInput.value) + Number(elements.breakMinutesInput.value);
+    if (start === null || end === null || !Number.isFinite(pauses) || pauses < 0 || pauses > getShiftDurationMinutes(elements.startTimeInput.value, elements.endTimeInput.value)) {
+      showToast('Bitte gültige Uhrzeiten und Pausen eingeben.', 'error'); return;
+    }
+  }
   const payload = getEntryPayload();
+  if (payload.total_work_minutes === 0 && !AUTO_REPORT_TYPES.has(elements.reportTypeInput.value)) {
+    Object.assign(payload, { start_time: '00:00', end_time: '00:00', lunch_break_minutes: 0, additional_break_minutes: 0, total_adjusted_work_minutes: 0 });
+  }
   const isAutoType = AUTO_REPORT_TYPES.has(elements.reportTypeInput.value);
   if (!payload.project_name) {
     showToast('Projektname fehlt.', 'error');
@@ -2793,24 +2844,18 @@ async function saveEntry(event) {
     return;
   }
 
-  if (!isAutoType && !isValidCommissionNumber(payload.commission_number)) {
-    showToast(COMMISSION_NUMBER_ERROR, 'error');
-    elements.commissionInput.focus();
-    return;
-  }
-
   const maxAutoMinutes = Math.round(getAutoReportMaxHours() * 60);
   if (isAutoType && (!Number.isFinite(payload.total_work_minutes) || payload.total_work_minutes <= 0 || payload.total_work_minutes > maxAutoMinutes)) {
     showToast(`Zeit muss zwischen 0 und ${formatDecimalHoursForInput(getAutoReportMaxHours())} Stunden liegen. Dezimalwerte wie .1 bis .9 sind erlaubt.`, 'error');
     return;
   }
 
-  if (!isAutoType && state.entryMode !== ENTRY_MODE_DETAILED && (!Number.isFinite(payload.total_work_minutes) || payload.total_work_minutes <= 0)) {
+  if (!isAutoType && state.entryMode !== ENTRY_MODE_DETAILED && (!Number.isFinite(payload.total_work_minutes) || payload.total_work_minutes < 0)) {
     showToast('Bitte Arbeitszeit als ganze Zahl oder Viertelstunde eingeben (z. B. 2, 6.25, 7.5 oder 4.75).', 'error');
     return;
   }
 
-  if (!isAutoType && state.entryMode === ENTRY_MODE_DETAILED && (!Number.isFinite(payload.total_work_minutes) || payload.total_work_minutes <= 0)) {
+  if (!isAutoType && state.entryMode === ENTRY_MODE_DETAILED && (!Number.isFinite(payload.total_work_minutes) || payload.total_work_minutes < 0)) {
     showToast('Bitte gültige Arbeitszeit eingeben.', 'error');
     return;
   }
@@ -2854,7 +2899,10 @@ async function saveEntry(event) {
         const body = { ...payload, attachments };
 
         let result;
-        if (state.editingEntry?.id) {
+        if (state.temporarySession) {
+          const saved = await TemporaryAccess.call(state.config, state.temporarySession, 'save', { id: state.editingEntry?.id || null, report: body });
+          result = { data: saved.report, error: null };
+        } else if (state.editingEntry?.id) {
           result = await state.supabase
             .from('weekly_reports')
             .update(body)
@@ -2968,6 +3016,7 @@ async function saveHolidayRequest(event) {
 }
 
 async function deleteEntry() {
+  if (state.temporarySession) { showToast('Temporäre Rapporte werden nicht gelöscht.', 'warning'); return; }
   if (!state.editingEntry?.id) return;
   if (!window.confirm('Diesen Rapport wirklich löschen?')) return;
 
@@ -3059,7 +3108,7 @@ function openDrawer(isoDate, entry = null) {
   enforceQuarterHourInput(elements.endTimeInput);
   setSelectOrInputValue(elements.lunchMinutesInput, entry?.lunch_break_minutes ?? getAutomaticLunchMinutes(elements.startTimeInput.value, elements.endTimeInput.value));
   setSelectOrInputValue(elements.breakMinutesInput, entry?.additional_break_minutes ?? DEFAULT_BREAK_MINUTES);
-  elements.workHoursInput.value = formatDecimalHoursForInput(Math.min(getAutoReportMaxHours(), Math.max(0, Number(entry?.total_work_minutes || (DEFAULT_WORK_HOURS * 60)) / 60)));
+  elements.workHoursInput.value = formatDecimalHoursForInput(Math.min(getAutoReportMaxHours(), Math.max(0, Number(entry?.total_work_minutes ?? (DEFAULT_WORK_HOURS * 60)) / 60)));
   const isWeekend = isWeekendIsoDate(isoDate);
   const entryMode = isWeekend || (entry && !isSimpleEntryByTimes(entry)) ? ENTRY_MODE_DETAILED : ENTRY_MODE_SIMPLE;
   elements.simpleDurationInput.value = formatDurationForInput(entry?.total_work_minutes ?? (DEFAULT_WORK_HOURS * 60));
@@ -3074,7 +3123,7 @@ function openDrawer(isoDate, entry = null) {
   syncSavedCommissionDropdownState();
   syncExpenseToggleState();
   resetAttachmentState('report', entry?.attachments || []);
-  elements.deleteEntryBtn.classList.toggle('hidden', !entry);
+  elements.deleteEntryBtn.classList.toggle('hidden', !entry || Boolean(state.temporarySession));
   renderAttachmentPreview('report');
 }
 
@@ -3200,12 +3249,12 @@ function renderAttachmentPreview(kind) {
     const body = document.createElement('div');
     body.className = 'attachment-item-body';
     body.innerHTML = `
-      <strong>${file.name}</strong>
+      <strong>${escapeHtml(file.name)}</strong>
       <span>${isPending ? 'Neu hinzugefügt' : 'Bereits gespeichert'} • ${formatAttachmentMeta(file)}</span>
     `;
 
     const removeBtn = document.createElement('button');
-    const allowAttachmentRemoval = !(kind === 'holiday' && state.editingHoliday?.id);
+    const allowAttachmentRemoval = !(kind === 'holiday' && state.editingHoliday?.id) && !(state.temporarySession && !isPending);
     removeBtn.type = 'button';
     removeBtn.className = 'ghost-btn attachment-remove-btn';
     removeBtn.innerHTML = buttonLabel('trash-2', 'Entfernen');
@@ -3267,7 +3316,7 @@ function renderWeek() {
         const entryNode = elements.entryCardTemplate.content.cloneNode(true);
         const button = entryNode.querySelector('.entry-card');
         button.querySelector('.entry-commission').textContent = entry.commission_number || '—';
-        button.querySelector('.entry-project').textContent = entry.project_name || '—';
+        button.querySelector('.entry-project').textContent = truncateTextWithEllipsis(entry.project_name) || '—';
         button.querySelector('.entry-minutes').innerHTML = formatAdjustedEntryMinutes(entry);
         button.querySelector('.entry-expenses').textContent = formatCurrency(
           Number(entry.expenses_amount || 0) + Number(entry.other_costs_amount || 0)
@@ -3415,10 +3464,15 @@ function render() {
   elements.authCard.classList.toggle('hidden', isAuthenticated);
   elements.appView.classList.toggle('hidden', !isAuthenticated);
   elements.signOutBtn.classList.toggle('hidden', !isAuthenticated);
+  document.getElementById('temporaryEntryCard').classList.toggle('hidden', isAuthenticated);
+  document.getElementById('temporaryIdentityBanner').classList.toggle('hidden', !state.temporarySession);
+  if (state.temporarySession) document.getElementById('temporaryIdentityLabel').textContent = `${state.profile.first_name} ${state.profile.last_name} – ${formatDate(parseLocalDate(state.profile.birth_date))}`;
+  elements.navMenuItems?.forEach(item => item.classList.toggle('hidden', Boolean(state.temporarySession) && !['timesheet', 'dashboard'].includes(item.dataset.navView)));
+  [...elements.reportTypeInput.options].forEach(option => { if (option.value) { option.hidden = Boolean(state.temporarySession); option.disabled = Boolean(state.temporarySession); } });
 
   if (isAuthenticated) {
     setPill(elements.authStatusPill, `Angemeldet als ${state.session.user.email}`, 'success');
-    fillSettingsForm();
+    if (!state.temporarySession) fillSettingsForm();
     renderWeek();
     renderHolidayRequests();
     renderHolidayHistory();
@@ -3499,6 +3553,21 @@ function registerEventListeners() {
     setAuthMode('login');
   });
   elements.signOutBtn.addEventListener('click', signOut);
+  document.getElementById('continueWithoutAccountBtn').addEventListener('click', () => {
+    document.getElementById('temporaryAccessForm').classList.remove('hidden');
+    document.getElementById('temporaryBirthDate').max = getISODate(new Date());
+    document.getElementById('temporaryFirstName').focus();
+  });
+  document.getElementById('cancelTemporaryAccessBtn').addEventListener('click', () => document.getElementById('temporaryAccessForm').classList.add('hidden'));
+  document.getElementById('temporaryAccessForm').addEventListener('submit', enterTemporaryAccess);
+  document.getElementById('leaveTemporaryAccessBtn').addEventListener('click', leaveTemporaryAccess);
+  document.getElementById('zeroHoursBtn').addEventListener('click', () => {
+    if (AUTO_REPORT_TYPES.has(elements.reportTypeInput.value)) { showToast('0 Stunden sind für normale Kommissionsrapporte vorgesehen.', 'warning'); return; }
+    elements.simpleDurationInput.value = '0';
+    elements.startTimeInput.value = '00:00'; elements.endTimeInput.value = '00:00';
+    setSelectOrInputValue(elements.lunchMinutesInput, 0); setSelectOrInputValue(elements.breakMinutesInput, 0);
+    elements.simpleDurationInput.setCustomValidity('');
+  });
   elements.settingsForm.addEventListener('submit', saveSettings);
   addMobileSafeActivationListener(elements.addSavedCommissionBtn, () => openSavedCommissionForm());
   elements.savedCommissionForm?.addEventListener('submit', saveSavedCommission);
@@ -3542,7 +3611,6 @@ function registerEventListeners() {
     }
   });
   elements.navMenuToggleBtn?.addEventListener('click', toggleNavMenu);
-  elements.servicePageBtn?.addEventListener('click', openServicePage);
   elements.navMenuBackdrop?.addEventListener('click', closeNavMenu);
   elements.navMenuItems?.forEach((item) => {
     item.addEventListener('click', () => {
